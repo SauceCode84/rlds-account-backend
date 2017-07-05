@@ -1,0 +1,26 @@
+{
+  "name": "redis-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./dist/account.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.5.1",
+    "express": "^4.15.3",
+    "mongodb": "^2.2.29",
+    "redis": "^2.7.1",
+    "rxjs": "^5.4.1",
+    "superagent": "^3.5.2",
+    "uuid": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.5.3",
+    "@types/mongodb": "^2.2.6",
+    "@types/node": "^8.0.2",
+    "@types/redis": "^2.6.0"
+  }
+}
