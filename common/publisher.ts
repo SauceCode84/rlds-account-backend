@@ -13,4 +13,8 @@ export class Publisher {
     this.exchangeName = exchangeName;
   }
 
+  public publish(data: any) {
+
+  }
+
 }
