@@ -12,7 +12,7 @@ interface RequesterOptions {
   sendTo: string;
 
   /** An array of requests this Requester supports */
-  requests: string[];
+  requests?: string[];
 }
 
 /**
@@ -71,25 +71,36 @@ export class Requester {
         .catch((err: Error) => callback(err));
   }
 
-  private async sendAsync(request: RequestMessage): Promise<ResponseMessage> {
+  private async createChannel() {
     if (!this.connection) {
       this.connection = await amqp.connect("amqp://localhost");
     }
 
     let channel = await this.connection.createChannel();
-    let queueName = this.sendTo + ".client." + uuid();
-    
-    await channel.assertQueue(queueName, { exclusive: true });
 
-    return new Promise<ResponseMessage>((resolve, reject) => {
+    return channel;
+  }
+
+  private async sendAsync(request: RequestMessage): Promise<ResponseMessage> {
+    return new Promise<ResponseMessage>(async (resolve, reject) => {
+      let channel = await this.createChannel();
+
+      let queueName = this.sendTo + ".client." + uuid();
       let correlationId = request.correlationId || uuid();
+    
+      await channel.assertQueue(queueName, { exclusive: true, autoDelete: true });  
 
-      channel.consume(queueName, (message) => {
+      function onMessage(message: amqp.Message) {
         if (message.properties.correlationId === correlationId) {
           resolve({ data: JSON.parse(message.content.toString()) });
-          channel.close();
+        } else {
+          reject(new Error("CorrelationIds do not match!"));
         }
-      }, { noAck: true });
+        
+        channel.close();
+      }
+
+      channel.consume(queueName, onMessage, { noAck: true });
 
       channel.sendToQueue(this.sendTo,
         new Buffer(JSON.stringify(request.data)),
