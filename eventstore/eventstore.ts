@@ -57,11 +57,11 @@ async function start() {
     console.log("started eventStore...");
 
     async function processRequest(event: EventEnvelope): Promise<{}> {
-      console.log("processRequest event...", event);
+      //console.log("processRequest event...", event);
 
       await eventStore.save(event);
       await eventStreamPublisher.publish(event);
-
+      
       return Promise.resolve({ ok: true });
     }
 
