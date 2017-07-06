@@ -3,7 +3,7 @@ import { Subscriber } from "../common";
 
 const subscriber: Subscriber = new Subscriber({
   name: "Random Producer",
-  exchangeName: "events"
+  exchangeName: "eventsPub"
 });
 
 function sleep(ms) {
