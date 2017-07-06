@@ -1,8 +1,8 @@
 import * as amqp from "amqplib";
 import { Collection, Cursor, Db, MongoClient } from "mongodb";
 
-import { EventEnvelope } from "../common/event-envelope";
 import { Publisher, Responder } from "../common";
+import { EventEnvelope } from "./event-envelope";
 
 class EventStore {
 
@@ -57,7 +57,7 @@ async function start() {
     console.log("started eventStore...");
 
     async function processRequest(event: EventEnvelope): Promise<{}> {
-      //console.log("processRequest event...", event);
+      console.log("received event...", event.aggregateType + "." + event.eventName);
 
       await eventStore.save(event);
       await eventStreamPublisher.publish(event);
