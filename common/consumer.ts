@@ -1,5 +1,4 @@
 import * as amqp from "amqplib";
-import * as uuid from "uuid/v4";
 
 export class Consumer {
 
