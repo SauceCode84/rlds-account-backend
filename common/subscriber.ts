@@ -14,7 +14,7 @@ export class Subscriber {
     this.exchangeName = exchangeName;
   }
 
-  public async subscribe() {
+  public async subscribe(callback: (data: any) => void) {
     if (!this.connection || !this.channel) {
       this.connection = await amqp.connect("amqp://localhost");
       this.channel = await this.connection.createChannel();
@@ -26,7 +26,9 @@ export class Subscriber {
     await this.channel.bindQueue(queueName, this.exchangeName, "");
 
     this.channel.consume(queueName, (message) => {
+      let data = JSON.parse(message.content.toString());
 
+      callback(data);
     }, { noAck: true });
   }
 }
