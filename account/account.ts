@@ -1,8 +1,9 @@
+import * as uuid from "uuid/v4";
 
 import { EventEnvelope } from "../common/event-envelope";
 import { Requester, Responder } from "../common";
 
-/*interface StudentAccountCreated {
+interface StudentAccountCreated {
   id: string;
   firstName: string;
   lastName: string;
@@ -11,52 +12,48 @@ import { Requester, Responder } from "../common";
 }
 
 async function start() {
-  try{
-    let connection = await amqp.connect("amqp://localhost");
-    let channel = await connection.createChannel();
+  const eventStoreRequester = new Requester({
+    name: "Event Store",
+    sendTo: "eventStore"
+  });
+  
+  let tasks: Promise<{}>[] = [];
 
-    const queueName = "eventStore.client." + uuid();
-
-    let q = await channel.assertQueue(queueName, { exclusive: true });
-
-    for (let i = 0; i < 10; i++) {
-
-      let id = uuid();
-      let correlationId = uuid();
-      
-      let event: EventEnvelope = {
-        aggregateId: id,
-        aggregateType: "studentAccount",
-        eventName: "created",
-        timestamp: new Date(),
-        data: <StudentAccountCreated>{
-          id: id,
-          firstName: "Jim",
-          lastName: "Bob",
-          grade: "Grade 1",
-          balance: 0.0
-        }
-      };
-
-      console.log(" [x] Requesting event...", event);
-
-      channel.consume(q.queue, (message) => {
-        if (message.properties.correlationId === correlationId) {
-          console.log(" [.] Got %s", message.content.toString());
-        }
-      }, { noAck: true });
+  for (let i = 0; i < 10; i++) {
+    let id = uuid();
     
-      channel.sendToQueue("eventStore",
-        new Buffer(JSON.stringify(event)),
-        { correlationId: correlationId, replyTo: q.queue });
+    let event: EventEnvelope = {
+      aggregateId: id,
+      aggregateType: "studentAccount",
+      eventName: "created",
+      timestamp: new Date(),
+      data: <StudentAccountCreated>{
+        id: id,
+        firstName: "Jim",
+        lastName: "Bob",
+        grade: "Grade 1",
+        balance: 0.0
+      }
+    };
+
+    try {
+      //console.log("sending to eventStore...", event);
+      //let result = await eventStoreRequester.send({ type: "", data: event });
+      //console.log("done! result...", result);
+
+      tasks.push(eventStoreRequester.send({ type: "", data: event }));
+    } catch (err) {
+      console.warn(err.stack);
+      console.warn(err.stackAtStateChange);
     }
-    
-  } catch (err) {
-    console.error(err);
   }
+
+  console.time("send events");
+  await Promise.all(tasks);
+  console.timeEnd("send events");
 }
 
-start();*/
+start();
 
 
 

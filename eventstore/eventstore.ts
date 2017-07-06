@@ -54,13 +54,15 @@ async function start() {
       exchangeName: "eventStream"
     });
 
-    async function processRequest(event: EventEnvelope): Promise<void> {
+    console.log("started eventStore...");
+
+    async function processRequest(event: EventEnvelope): Promise<{}> {
       console.log("processRequest event...", event);
 
       await eventStore.save(event);
       await eventStreamPublisher.publish(event);
 
-      return Promise.resolve();
+      return Promise.resolve({ ok: true });
     }
 
     eventStoreResponser.on("", (request) => processRequest(request.data));
