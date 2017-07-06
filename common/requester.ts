@@ -3,12 +3,21 @@ import * as uuid from "uuid/v4";
 
 import { RequestMessage, ResponseCallback, ResponseMessage } from "./";
 
+/** Requestor options */
 interface RequesterOptions {
+  /** The name of the Requestor */
   name: string;
+
+  /** The name of the queue to which the requests are being sent */
   sendTo: string;
+
+  /** An array of requests this Requester supports */
   requests: string[];
 }
 
+/**
+ * A Requester that sends requests to the specified queue and awaits a reponse
+ */
 export class Requester {
   
   private name: string;
@@ -17,6 +26,10 @@ export class Requester {
 
   private connection: amqp.Connection;
   
+  /**
+   * Creates a new Requester, with the options provided
+   * @param {RequesterOptions} options Options for configuring the Requester
+   */
   constructor({ name, sendTo, requests }: RequesterOptions) {
     this.name = name;
     this.sendTo = sendTo;
@@ -24,13 +37,27 @@ export class Requester {
   }
 
   /**
-   * Sends a request message to the requester's queue
-   * @param request The request message to be sent
+   * Sends a request message to the requester's queue and returns a Promise containing the RepsonseMessage
+   * @param {RequestMessage} request The request message to be sent
+   * @returns {Promise<ResponseMessage>} 
    */
   public send(request: RequestMessage): Promise<ResponseMessage>;
+  
+  /**
+   * Callback for returning a response from a request message
+   * @callback responseCallback
+   * @param {Error} err An error, if the request failed
+   * @param {ResponseMessage} response The response return by the request
+   */
+
+  /**
+   * Sends a request message to the requester's queue and and passes the response to the callback provided
+   * @param {RequestMessage} request The request message to be sent
+   * @param {responseCallback} callback The callback to which the response is returned
+   */
   public send(request: RequestMessage, callback: ResponseCallback): void;
 
-  public send(request: RequestMessage, callback?: ResponseCallback) : void | Promise<ResponseMessage> {
+  public send(request: RequestMessage, callback?: ResponseCallback): void | Promise<ResponseMessage> {
     if (typeof callback === "function") {
       return this.sendCallback(request, callback);
     }
@@ -70,3 +97,4 @@ export class Requester {
     });
   }
 }
+
