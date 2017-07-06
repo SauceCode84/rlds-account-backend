@@ -15,5 +15,5 @@ setInterval(async () => {
 
   await publisher.publish(data);
 
-  console.log("producer send...", data);
+  console.log("publisher send...", data);
 }, 1000);

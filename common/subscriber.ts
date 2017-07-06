@@ -1,10 +1,11 @@
 import * as amqp from "amqplib";
+import * as uuid from "uuid/v4";
 
-export class Publisher {
+export class Subscriber {
 
   private name: string;
   private exchangeName: string;
-
+  
   private connection: amqp.Connection;
   private channel: amqp.Channel;
 
@@ -13,15 +14,19 @@ export class Publisher {
     this.exchangeName = exchangeName;
   }
 
-  public async publish(data: any) {
+  public async subscribe() {
     if (!this.connection || !this.channel) {
       this.connection = await amqp.connect("amqp://localhost");
       this.channel = await this.connection.createChannel();
     }
 
-    await this.channel.assertExchange(this.exchangeName, "fanout", { durable: true });
+    let queueName = this.exchangeName + "." + uuid();
 
-    this.channel.publish(this.exchangeName, "", new Buffer(JSON.stringify(data)));
+    await this.channel.assertQueue(queueName, { exclusive: true });
+    await this.channel.bindQueue(queueName, this.exchangeName, "");
+
+    this.channel.consume(queueName, (message) => {
+
+    }, { noAck: true });
   }
-
 }
