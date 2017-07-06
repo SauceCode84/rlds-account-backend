@@ -21,11 +21,7 @@ export class Producer {
 
     await this.channel.assertExchange(this.exchangeName, "direct", { durable: true });
     
-    this.channel.publish(
-      this.exchangeName,
-      "",
-      new Buffer(JSON.stringify(data)),
-      { persistent: true });
+    this.channel.publish(this.exchangeName, "", new Buffer(JSON.stringify(data)), { persistent: true });
   }
 }
 
