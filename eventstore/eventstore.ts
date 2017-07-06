@@ -2,6 +2,7 @@ import * as amqp from "amqplib";
 import { Collection, Cursor, Db, MongoClient } from "mongodb";
 
 import { EventEnvelope } from "../common/event-envelope";
+import { Publisher, Responder } from "../common";
 
 class EventStore {
 
@@ -41,40 +42,29 @@ async function startEventStore(): Promise<EventStore> {
   return new EventStore(eventsCollection);
 }
 
-const queueName = "eventStore";
-
-async function createChannel() {
-  let connection: amqp.Connection = await amqp.connect("amqp://localhost");
-  let channel: amqp.Channel = await connection.createChannel();
-  
-  await channel.assertQueue(queueName, { durable: false });
-  await channel.prefetch(1);
-
-  return channel;
-}
-
 async function start() {
-  try{
+  try {
     const eventStore = await startEventStore();
-    const channel = await createChannel();
-    
-    console.log(" [x] Awaiting RPC requests");
-
-    channel.consume(queueName, (message: amqp.Message) => {
-      let eventEnvelope: EventEnvelope = JSON.parse(message.content.toString());
-
-      console.log(" [.] storing event...", eventEnvelope);
-
-      eventStore
-        .save(eventEnvelope)
-        .then(() => {
-          channel.sendToQueue(message.properties.replyTo,
-            new Buffer("Ok"),
-            { correlationId: message.properties.correlationId });
-
-          channel.ack(message);
-        });
+    const eventStoreResponser = new Responder({
+      name: "Event Store",
+      queueName: "eventStore"
     });
+    const eventStreamPublisher = new Publisher({
+      name: "Event Stream",
+      exchangeName: "eventStream"
+    });
+
+    async function processRequest(event: EventEnvelope): Promise<void> {
+      console.log("processRequest event...", event);
+
+      await eventStore.save(event);
+      await eventStreamPublisher.publish(event);
+
+      return Promise.resolve();
+    }
+
+    eventStoreResponser.on("", (request) => processRequest(request.data));
+    
   } catch (err) {
     console.error(err);
   }
