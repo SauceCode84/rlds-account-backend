@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { SELF_DECLARED_DEPS_METADATA } from "../../constants";
-import { isFunction } from "../../utils";
+import { isFunction } from "../../shared.utils";
 
 export const Inject = (param): ParameterDecorator => {
    return (target: object, key: string, index: number) => {

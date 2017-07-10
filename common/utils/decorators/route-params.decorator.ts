@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { ROUTE_ARGS_METADATA } from "../../constants";
 import { RouteParamTypes } from "../../enums/route-param-types.enum";
-import { PipeTransform } from "../../interfaces/pipe-transform";
+import { PipeTransform } from "../../interfaces/pipe-transform.interface";
 
 export type ParamData = object | string | number;
 

@@ -1,5 +1,5 @@
 import { PATH_METADATA } from "../../constants";
-import { isObject, isUndefined } from "../../utils";
+import { isObject, isUndefined } from "../../shared.utils";
 import { ControllerMetadata } from "../../interfaces/index";
 
 export const Controller = (metadata?: ControllerMetadata | string): ClassDecorator => {
