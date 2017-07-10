@@ -67,8 +67,8 @@ export class Requester {
 
   private sendCallback(request: RequestMessage, callback: ResponseCallback) {
     this.sendAsync(request)
-        .then((response: ResponseMessage) => callback(null, response))
-        .catch((err: Error) => callback(err));
+      .then((response: ResponseMessage) => callback(null, response))
+      .catch((err: Error) => callback(err));
   }
 
   private async createChannel() {

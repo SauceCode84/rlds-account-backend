@@ -1,5 +1,5 @@
 
-import { Subscriber } from "../common";
+import { Subscriber } from "../common/messaging";
 
 const subscriber: Subscriber = new Subscriber({
   name: "Random Producer",

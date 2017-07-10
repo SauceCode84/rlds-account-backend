@@ -3,7 +3,7 @@ import * as uuid from "uuid/v4";
 import { EventEnvelope, createEventEnvelope } from "../eventstore/event-envelope";
 import { eventBus } from "./event-bus";
 
-type StudentGrade = "Primary" | "Grade 1";
+export type StudentGrade = "Primary" | "Grade 1";
 
 type StudentAccountEventName = "created" | "deactivated" | "emailAdded" | "debited" | "credited";
 
@@ -57,6 +57,8 @@ export class StudentAccount {
   balance: number;
   emails: string[] = [];
   lines: AccountLine[] = [];
+
+  active: boolean = true;
 
   static async create(firstName: string, lastName: string, grade: StudentGrade) {
     let id = uuid();
@@ -146,6 +148,10 @@ const studentAccountEventHandlers: { [eventName: string]: StudentAccountEventHan
       credit: event.amount
     });
     studentAccount.balance -= event.amount;
+  },
+
+  deactivated: (studentAccount: StudentAccount, event: StudentAccountDeactivated) => {
+    studentAccount.active = false;
   }
 
 }

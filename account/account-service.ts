@@ -2,7 +2,7 @@ import * as express from "express";
 import * as bodyParser from "body-parser";
 import * as uuid from "uuid/v4";
 
-import { Requester, Responder } from "../common";
+import { Requester, Responder } from "../common/messaging";
 import { EventEnvelope } from "../eventstore/event-envelope";
 import { StudentAccount } from "./account";
 

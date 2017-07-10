@@ -1,7 +1,7 @@
 import * as amqp from "amqplib";
 import { Collection, Cursor, Db, MongoClient } from "mongodb";
 
-import { Publisher, Responder } from "../common";
+import { Publisher, Responder } from "../common/messaging";
 import { EventEnvelope } from "./event-envelope";
 
 class EventStore {

@@ -1,5 +1,5 @@
 
-import { Publisher } from "../common";
+import { Publisher } from "../common/messaging";
 
 const publisher: Publisher = new Publisher({
   name: "Random Producer",

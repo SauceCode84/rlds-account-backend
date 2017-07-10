@@ -1,5 +1,5 @@
 
-import { Requester, ResponseMessage } from "../common";
+import { Requester, ResponseMessage } from "../common/messaging";
 
 const randomRequester: Requester = new Requester({
   name: "Random Requester",
