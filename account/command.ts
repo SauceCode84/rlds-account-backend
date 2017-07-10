@@ -75,10 +75,6 @@ const CommandHandlers = [
   DeactivateStudentCommandHandler
 ];
 
-interface Metatype<T> {
-  new (...args: any[]): T;
-}
-
 type CommandHandlerMetatype = Metatype<CommandHandler<Command>>;
 
 class CommandBus extends ObservableBus<Command> {

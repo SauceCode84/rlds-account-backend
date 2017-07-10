@@ -1,16 +1,12 @@
 import "reflect-metadata";
 import { PATH_METADATA, METHOD_METADATA } from "./constants";
-import { RequestMethod } from "./enums";
+import { RequestMethod } from "./enums/request-method.enum";
+import { RequestMappingMetadata } from "./interfaces/request-mapping-metadata.interface";
 
 const defaultMetadata: RequestMappingMetadata = {
   [PATH_METADATA]: "/",
   [METHOD_METADATA]: RequestMethod.GET
 };
-
-interface RequestMappingMetadata {
-  path?: string;
-  method?: RequestMethod;
-}
 
 export const RequestMapping = (metadata: RequestMappingMetadata = defaultMetadata): MethodDecorator => {
   let path = metadata[PATH_METADATA] || "/";

@@ -1,5 +1,5 @@
 
-import { ParamType } from "./paramtype";
+import { ParamType } from "./paramtype.interface";
 
 export type Transform<T> = (value: T, metadata: ArgumentMetadata) => any;
 
