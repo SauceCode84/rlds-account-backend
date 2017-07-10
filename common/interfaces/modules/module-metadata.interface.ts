@@ -1,6 +1,6 @@
 
 import { IrisModule } from "./iris-module.interface";
-import { Controller } from "../../controller";
+import { Controller } from "../controllers";
 
 export interface ModuleMetadata {
   modules?: IrisModule[] | any[];
