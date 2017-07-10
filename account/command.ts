@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { StudentAccount, StudentGrade } from "./account";
 import { ObservableBus } from "../common/cqrs/observable-bus";
+import { Metatype } from "../common/interfaces/metatype-interface";
 
 const COMMAND_HANDLER_METADATA = "__commandHandler__";
 
