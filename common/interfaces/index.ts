@@ -6,20 +6,20 @@ export * from "./paramtype.interface";
 export * from "./pipe-transform.interface";
 
 // controllers
-export * from './controllers/controller.interface';
-export * from './controllers/controller-metadata.interface';
+export * from "./controllers/controller.interface";
+export * from "./controllers/controller-metadata.interface";
 
 // exceptions
-export * from './exceptions/exception-filter.interface';
+export * from "./exceptions/exception-filter.interface";
 
 // middlewares
-export * from './middlewares';
+export * from "./middlewares";
 
 // modules
-export * from './modules/iris-module.interface';
-export * from './modules/module-metadata.interface';
-export * from './modules/oninit.interface';
-export * from './modules/ondestroy.interface';
+export * from "./modules/iris-module.interface";
+export * from "./modules/module-metadata.interface";
+export * from "./modules/oninit.interface";
+export * from "./modules/ondestroy.interface";
 
 // request mapping
-export * from './request-mapping-metadata.interface';
+export * from "./request-mapping-metadata.interface";

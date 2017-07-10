@@ -1,0 +1,15 @@
+import "reflect-metadata";
+import { PipeTransform } from "../../interfaces";
+import { PIPES_METADATA } from "../../constants";
+
+export const UsePipes = (...pipes: PipeTransform[]) => {
+  return (target: object, key?, descriptor?) => {
+    if (descriptor) {
+      Reflect.defineMetadata(PIPES_METADATA, pipes, descriptor.value);
+      return descriptor;
+    }
+
+    Reflect.defineMetadata(PIPES_METADATA, pipes, target);
+    return target;
+  };
+};
