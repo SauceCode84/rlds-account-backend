@@ -1,3 +1,3 @@
 
-export * from "./controller";
-export * from "./controller-metadata";
+export * from "./controller.interface";
+export * from "./controller-metadata.interface";

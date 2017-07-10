@@ -1,8 +1,6 @@
 import "reflect-metadata";
-import { metadata } from "./constants";
-import { Controller } from "./controller";
-import { IrisModule } from "./interfaces/modules/iris-module.interface";
-import { ModuleMetadata } from "./interfaces/modules/module-metadata.interface";
+import { metadata } from "../../constants";
+import { ModuleMetadata } from "../../interfaces/modules/module-metadata.interface";
 
 const metadataKeys = [
   metadata.MODULES,

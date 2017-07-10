@@ -1,7 +1,7 @@
 import "reflect-metadata";
-import { ROUTE_ARGS_METADATA } from "./constants";
-import { RouteParamTypes } from "./enums";
-import { PipeTransform } from "./pipe-transform";
+import { ROUTE_ARGS_METADATA } from "../../constants";
+import { RouteParamTypes } from "../../enums/route-param-types.enum";
+import { PipeTransform } from "../../interfaces/pipe-transform";
 
 export type ParamData = object | string | number;
 
@@ -62,11 +62,3 @@ export const Res = Response;
 export const Query: (property?: string, ...pipes: PipeTransform[]) => ParameterDecorator = createRouteParamDecoratorWithPipes(RouteParamTypes.QUERY);
 export const Body: (property?: string, ...pipes: PipeTransform[]) => ParameterDecorator = createRouteParamDecoratorWithPipes(RouteParamTypes.BODY);
 export const Param: (property?: string, ...pipes: PipeTransform[]) => ParameterDecorator = createRouteParamDecoratorWithPipes(RouteParamTypes.PARAM);
-
-class MyController {
-
-  getAccounts(@Req() req, @Res() res) {
-
-  }
-
-}

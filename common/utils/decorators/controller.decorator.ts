@@ -1,6 +1,6 @@
-import { PATH_METADATA } from "./constants";
-import { isObject, isUndefined } from "./utils";
-import { ControllerMetadata } from "./controller-metadata";
+import { PATH_METADATA } from "../../constants";
+import { isObject, isUndefined } from "../../utils";
+import { ControllerMetadata } from "../../interfaces/index";
 
 export const Controller = (metadata?: ControllerMetadata | string): ClassDecorator => {
   let path = isObject(metadata) ? metadata[PATH_METADATA] : metadata;

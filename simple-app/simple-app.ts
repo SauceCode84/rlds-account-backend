@@ -1,6 +1,6 @@
-import { Module } from "../common/module.decorator";
-import { Component } from "../common/component.decorator";
-import { Controller } from "../common/controller.decorator";
+import { Component } from "../common/utils/decorators/component.decorator";
+import { Controller } from "../common/utils/decorators/controller.decorator";
+import { Module } from "../common/utils/decorators/module.decorator";
 
 @Component()
 export class UserService {
