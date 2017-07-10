@@ -1,8 +1,9 @@
 
-export * from './injectable.interface';
-export * from './iris-application.interface';
-export * from './metatype.interface';
-export * from './paramtype.interface';
+export * from "./injectable.interface";
+export * from "./iris-application.interface";
+export * from "./metatype.interface";
+export * from "./paramtype.interface";
+export * from "./pipe-transform.interface";
 
 // controllers
 export * from './controllers/controller.interface';
