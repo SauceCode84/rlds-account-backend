@@ -104,7 +104,7 @@ export class StudentAccount {
   }
 
   async credit(date: Date, details: string, amount: number) {
-    await this.apply("credited", <StudentAccountCredited>{ date, details, amount});
+    await this.apply("credited", <StudentAccountCredited>{ date, details, amount });
   }
 
 }

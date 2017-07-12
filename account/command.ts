@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { StudentAccount, StudentGrade } from "./account";
-import { ObservableBus } from "../common/cqrs/observable-bus";
+//import { ObservableBus } from "../common/cqrs/observable-bus";
 
 const COMMAND_HANDLER_METADATA = "__commandHandler__";
 
@@ -8,7 +8,7 @@ const COMMAND_HANDLER_METADATA = "__commandHandler__";
  * Decorates a CommandHandler class to provide metadata for the associated Command being handled by the class
  * @param command The Command being handled
  */
-const CommandHandlerFor = (command: Command): ClassDecorator => {
+const CommandHandler = (command: Command): ClassDecorator => {
   return (target: object) => {
     Reflect.defineMetadata(COMMAND_HANDLER_METADATA, command, target);
   }
@@ -33,7 +33,7 @@ class CreateStudentCommand implements Command {
 
 }
 
-@CommandHandlerFor(CreateStudentCommand)
+@CommandHandler(CreateStudentCommand)
 class CreateStudentCommandHandler implements CommandHandler<CreateStudentCommand> {
   
   async execute(command: CreateStudentCommand, resolve: <T>(value?: T) => void) {
@@ -58,7 +58,7 @@ class DeactivateStudentCommand implements Command {
 
 }
 
-@CommandHandlerFor(DeactivateStudentCommand)
+@CommandHandler(DeactivateStudentCommand)
 class DeactivateStudentCommandHandler implements CommandHandler<DeactivateStudentCommand> {
   
   async execute(command: DeactivateStudentCommand, resolve: (value?: any) => void) {
@@ -70,18 +70,32 @@ class DeactivateStudentCommandHandler implements CommandHandler<DeactivateStuden
 
 }
 
-const CommandHandlers = [
-  CreateStudentCommandHandler,
-  DeactivateStudentCommandHandler
-];
-
-interface Metatype<T> {
+interface Type<T> extends Function {
   new (...args: any[]): T;
 }
 
-type CommandHandlerMetatype = Metatype<CommandHandler<Command>>;
+interface CommandHandlerProvider {
+  provide: any;
+  useFactory: Function;
+}
 
-class CommandBus extends ObservableBus<Command> {
+function isProvider(obj): obj is CommandHandlerProvider {
+  return "provide" in obj && "useFactory" in obj;
+}
+
+const CommandHandlers: (CommandHandlerType | CommandHandlerProvider)[] = [
+  CreateStudentCommandHandler,
+  {
+    provide: DeactivateStudentCommandHandler,
+    useFactory: (): DeactivateStudentCommandHandler => {
+      return new DeactivateStudentCommandHandler();
+    }
+  }
+];
+
+type CommandHandlerType = Type<CommandHandler<Command>>;
+
+class CommandBus {
 
   private handlers = new Map<string, CommandHandler<Command>>();
 
@@ -93,22 +107,29 @@ class CommandBus extends ObservableBus<Command> {
       throw new Error();
     }
 
-    this.subject.next(command);
+    //this.subject.next(command);
 
     return new Promise((resolve) => {
       handler.execute(command, resolve);
     });
   }
 
-  public register(handlers: CommandHandlerMetatype[]) {
+  public register(handlers: (CommandHandlerType | CommandHandlerProvider)[]) {
     handlers.forEach(handler => this.registerHandler(handler));
   }
 
-  protected registerHandler(handler: CommandHandlerMetatype) {
-    // create an instance... this needs to change to cater for DI
-    const instance = new handler();
+  protected registerHandler(handlerOrProvider: CommandHandlerType | CommandHandlerProvider) {
+    let instance: CommandHandler<Command>;
+    let target: FunctionConstructor;
 
-    const target = this.reflectCommandName(handler);
+    if (isProvider(handlerOrProvider)) {
+      instance = handlerOrProvider.useFactory();
+      target = this.reflectCommandName(handlerOrProvider.provide);
+    } else {
+      // create an instance... this needs to change to cater for DI
+      instance = new handlerOrProvider();
+      target = this.reflectCommandName(handlerOrProvider);
+    }
     
     if (!target) {
       throw new Error();
@@ -126,7 +147,7 @@ class CommandBus extends ObservableBus<Command> {
     return constructor.name as string;
   }
 
-  private reflectCommandName(handler: CommandHandlerMetatype): FunctionConstructor {
+  private reflectCommandName(handler: CommandHandlerType): FunctionConstructor {
     return Reflect.getMetadata(COMMAND_HANDLER_METADATA, handler);
   }
 
