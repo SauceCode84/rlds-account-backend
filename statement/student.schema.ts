@@ -5,8 +5,8 @@ import { IStudentModel } from "./student.model";
 import DataAccess = require("./data-access");
 
 export const StudentSchema: Schema = new Schema({
-  firstName: String,
-  lastName: String
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true }
 }, {
   versionKey: false
 });

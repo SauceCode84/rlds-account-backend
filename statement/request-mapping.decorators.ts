@@ -31,3 +31,4 @@ const createMappingDecorator = (method: string) => (path?: string): MethodDecora
 };
 
 export const Get = createMappingDecorator("GET");
+export const Post = createMappingDecorator("POST");

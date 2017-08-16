@@ -6,6 +6,9 @@ import * as logger from "morgan";
 
 import { StudentController } from "./student-controller";
 import { StatementController } from "./statement-controller";
+import { PATH_METADATA } from "./constants";
+import { RoutePathScanner } from "./route-path-scanner";
+import { isNil, isFunction } from "./util";
 
 export class Server {
 
@@ -48,17 +51,48 @@ export class Server {
     this.app.use(errorHandler());
   }
 
+  private router: express.Router;
+
   public api() {
-    let router = express.Router();
+    this.router = express.Router();
 
-    StudentController.create(router);
-    StatementController.create(router);
+    this.registerController(StudentController);
+    this.registerController(StatementController);
 
-    this.app.use("/", router);
+    this.app.use("/", this.router);
   }
 
-  registerController(controller: any) {
+  registerController<T>(controllerType: Type<T>, controllerFactory?: () => T) {
+    let controllerPath: string = Reflect.getMetadata(PATH_METADATA, controllerType);
     
+    let controller: T = !isNil(controllerFactory) && isFunction(controllerFactory)
+      ? controllerFactory()
+      : new controllerType();
+
+    let routePaths = new RoutePathScanner().scanPaths(controller);
+
+    routePaths.forEach(routePath => {
+      let { path, requestMethod, targetCallback } = routePath;
+      let completePath = controllerPath + path;
+      
+      let routerMethod = routerMethodFactory(this.router, requestMethod).bind(this.router);
+      
+      routerMethod(completePath, targetCallback);
+    });
   }
 
+}
+
+const routerMethodFactory = (target, requestMethod: string): Function => {
+  switch (requestMethod) {
+    case "POST":
+      return target.post;
+
+    default:
+      return target.get;
+  }
+};
+
+export interface Type<T> extends Function {
+  new (...args: any[]): T;
 }

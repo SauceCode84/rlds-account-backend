@@ -1,5 +1,5 @@
 
-import { RequestHandler } from "express";
+import { RequestHandler, Router } from "express";
 
 import { PATH_METADATA, METHOD_METADATA } from "./constants";
 import { MetadataScanner } from "./metadata-scanner";
@@ -11,23 +11,20 @@ interface RoutePathProperties {
   targetCallback: RequestHandler
 }
 
-export class RouteMapper {
+export class RoutePathScanner {
 
   private readonly metadataScanner = new MetadataScanner();
 
-  constructor() {
-  }
-
-  public explore(instance: any, prototype?): RoutePathProperties[] {
+  public scanPaths(instance: any, prototype?): RoutePathProperties[] {
     const instancePrototype = isUndefined(prototype) ? Object.getPrototypeOf(instance) : prototype;
     
     return this.metadataScanner.scanFromPrototype(
       instance,
       instancePrototype,
-      method => this.exploreMethodMetadata(instance, instancePrototype, method));
+      method => this.getMethodMetadata(instance, instancePrototype, method));
   };
 
-  private exploreMethodMetadata(instance, instancePrototype, methodName: string): RoutePathProperties {
+  private getMethodMetadata(instance, instancePrototype, methodName: string): RoutePathProperties {
     const targetCallback = instancePrototype[methodName];
     const routePath = Reflect.getMetadata(PATH_METADATA, targetCallback);
   
