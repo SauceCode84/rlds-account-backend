@@ -57,4 +57,8 @@ export class Server {
     this.app.use("/", router);
   }
 
+  registerController(controller: any) {
+    
+  }
+
 }
