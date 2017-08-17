@@ -18,10 +18,20 @@ export class StudentController {
     }
 
     @Get("/:id")
-    public async getById(req: Request, res: Response) {
+    public async getById(req: Request, res: Response, next: NextFunction) {
       let id: string = req.params.id;
-      let student = await Student.findById(id);
-      res.status(200).json(student);
+
+      try {
+        let student = await Student.findById(id);
+
+        if (!student) {
+          return res.sendStatus(404);
+        }
+
+        res.status(200).json(student);
+      } catch (err) {
+        next(err);
+      }
     }
 
     @Post()
