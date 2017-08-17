@@ -6,7 +6,9 @@ import DataAccess = require("./data-access");
 
 export const StudentSchema: Schema = new Schema({
   firstName: { type: String, required: true },
-  lastName: { type: String, required: true }
+  lastName: { type: String, required: true },
+  grade: String,
+  emails: [String]
 }, {
   versionKey: false
 });
