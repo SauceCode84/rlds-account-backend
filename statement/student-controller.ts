@@ -10,9 +10,18 @@ import { Get, Post } from "./request-mapping.decorators";
 export class StudentController {
   
     @Get()
-    public async all(req: Request, res: Response, next: NextFunction) {
+    public async getAll(req: Request, res: Response) {
+      let includeSummary: boolean = req.query.includeSummary || false;
+
       let students = await Student.find({});
       res.status(200).json(students);
+    }
+
+    @Get("/:id")
+    public async getById(req: Request, res: Response) {
+      let id: string = req.params.id;
+      let student = await Student.findById(id);
+      res.status(200).json(student);
     }
 
     @Post()
