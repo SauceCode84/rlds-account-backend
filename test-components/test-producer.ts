@@ -1,5 +1,5 @@
 
-import { Producer } from "../common";
+import { Producer } from "../common/messaging";
 
 const producer: Producer = new Producer({
   name: "Random Producer",

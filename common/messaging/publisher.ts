@@ -1,6 +1,6 @@
 import * as amqp from "amqplib";
 
-export class Producer {
+export class Publisher {
 
   private name: string;
   private exchangeName: string;
@@ -13,19 +13,15 @@ export class Producer {
     this.exchangeName = exchangeName;
   }
 
-  public async send(data: any) {
+  public async publish(data: any) {
     if (!this.connection || !this.channel) {
       this.connection = await amqp.connect("amqp://localhost");
       this.channel = await this.connection.createChannel();
     }
 
-    await this.channel.assertExchange(this.exchangeName, "direct", { durable: true });
-    
-    this.channel.publish(
-      this.exchangeName,
-      "",
-      new Buffer(JSON.stringify(data)),
-      { persistent: true });
-  }
-}
+    await this.channel.assertExchange(this.exchangeName, "fanout", { durable: true });
 
+    this.channel.publish(this.exchangeName, "", new Buffer(JSON.stringify(data)));
+  }
+
+}

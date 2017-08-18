@@ -1,5 +1,5 @@
 
-import { Responder } from "../common";
+import { Responder } from "../common/messaging";
 
 const responder: Responder = new Responder({
   name: "Random Responder",
