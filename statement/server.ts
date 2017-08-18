@@ -11,6 +11,7 @@ import { RoutePathScanner } from "./route-path-scanner";
 import { isNil, isFunction } from "./util";
 import { IStudentModel } from "./student.model";
 import { Student } from "./student.schema";
+import { routerMethodFactory } from "./routerMethodFactory";
 
 export class Server {
 
@@ -146,16 +147,6 @@ export class Server {
   }
 
 }
-
-const routerMethodFactory = (target, requestMethod: string): Function => {
-  switch (requestMethod) {
-    case "POST":
-      return target.post;
-
-    default:
-      return target.get;
-  }
-};
 
 export interface Type<T> extends Function {
   new (...args: any[]): T;
