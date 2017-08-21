@@ -14,12 +14,12 @@ export class StudentController {
     public async getAll(req: Request, res: Response) {
       let includeSummary: boolean = req.query.includeSummary || false;
 
-      let page: number = req.query.page;
-      let pageSize: number = req.query.pageSize;
+      let page = req.query.page;
+      let pageSize = req.query.pageSize;
 
       if (page || pageSize) {
-        page = page || 1;
-        pageSize = pageSize || 10;
+        page = parseInt(page) || 1;
+        pageSize = parseInt(pageSize) || 10;
 
         let count = await Student.find({}).count();
         let totalPages = Math.ceil(count / pageSize);
