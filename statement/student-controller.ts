@@ -5,7 +5,7 @@ import { Student } from "./student.schema";
 import { IStudentModel } from "./student.model";
 
 import { Controller } from "./controller.decorator";
-import { Get, Post } from "./request-mapping.decorators";
+import { Get, Post, Put } from "./request-mapping.decorators";
 
 @Controller("/student")
 export class StudentController {
@@ -73,6 +73,11 @@ export class StudentController {
 
         next(err);
       }
+    }
+
+    @Put()
+    public async update(req: Request, res: Response) {
+      
     }
   
   }
