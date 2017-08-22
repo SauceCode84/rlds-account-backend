@@ -4,7 +4,7 @@ export const routerMethodFactory = (target, requestMethod: string): Function => 
     case "POST":
       return target.post;
 
-    case "GET":
+    case "PUT":
       return target.put;
 
     default:
