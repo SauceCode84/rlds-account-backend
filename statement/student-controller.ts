@@ -75,9 +75,21 @@ export class StudentController {
       }
     }
 
-    @Put()
-    public async update(req: Request, res: Response) {
-      
+    @Put("/:id")
+    public async update(req: Request, res: Response, next: NextFunction) {
+      try {
+        let id: string = req.params.id;
+        let student = await Student.findById(id);
+
+        if (!student) {
+          return res.sendStatus(404);
+        }
+
+        await student.update(req.body);
+        res.sendStatus(204);
+      } catch (err) {
+        next(err);
+      }
     }
   
   }
