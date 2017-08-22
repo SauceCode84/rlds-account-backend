@@ -2,6 +2,7 @@
 import { NextFunction, Request, Response, Router } from "express";
 
 import { Student } from "./student.schema";
+import { IStudentModel } from "./student.model";
 
 import { Controller } from "./controller.decorator";
 import { Get, Post } from "./request-mapping.decorators";
@@ -13,8 +14,32 @@ export class StudentController {
     public async getAll(req: Request, res: Response) {
       let includeSummary: boolean = req.query.includeSummary || false;
 
-      let students = await Student.find({});
-      res.status(200).json(students);
+      let page = req.query.page;
+      let pageSize = req.query.pageSize;
+
+      if (page || pageSize) {
+        page = parseInt(page) || 1;
+        pageSize = parseInt(pageSize) || 10;
+
+        let count = await Student.find({}).count();
+        let totalPages = Math.ceil(count / pageSize);
+
+        if (page > totalPages) {
+          return res.sendStatus(400);
+        }
+
+        let results = await Student.find({}).skip((page - 1) * pageSize).limit(pageSize);
+        
+        res.status(200).json({
+          totalCount: count,
+          totalPages: totalPages,
+          page: page,
+          results: results          
+        })
+      } else {
+        let students = await Student.find({});
+        res.status(200).json(students);
+      }
     }
 
     @Get("/:id")

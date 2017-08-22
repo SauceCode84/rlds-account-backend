@@ -56,6 +56,9 @@ export class Server {
     // error handler
     this.app.use(errorHandler());
 
+    // disable etag (caching)
+    this.app.disable("etag");
+
     // allow cross domain
     this.app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
