@@ -28,7 +28,10 @@ export class StudentController {
           return res.sendStatus(400);
         }
 
-        let results = await Student.find({}).skip((page - 1) * pageSize).limit(pageSize);
+        let results = await Student.find({})
+          .sort({ grade: 1, lastName: 1, firstName: 1 })
+          .skip((page - 1) * pageSize)
+          .limit(pageSize);
         
         res.status(200).json({
           totalCount: count,
