@@ -7,6 +7,7 @@ import { IStudentModel } from "./student.model";
 import { Controller } from "./controller.decorator";
 import { Get, Post, Put } from "./request-mapping.decorators";
 import { compare, compareCaseInsensitive } from "./util";
+import { PageOptions, IPagedResults } from "./pagination";
 
 @Controller("/student")
 export class StudentController {
@@ -75,14 +76,7 @@ export class StudentController {
 
 
 
-interface IPagedResults<T> {
-  totalCount: number;
-  totalPages: number;
-  page: number;
-  results: T[];    
-}
 
-type PageOptions = { page?: any, pageSize?: any };
 
 class StudentService {
 
