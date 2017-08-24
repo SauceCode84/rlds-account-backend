@@ -13,9 +13,7 @@ export class StudentController {
     @Get()
     public async getAll(req: Request, res: Response) {
       let includeSummary: boolean = req.query.includeSummary || false;
-
-      let page = req.query.page;
-      let pageSize = req.query.pageSize;
+      let { page, pageSize } = req.query;
 
       if (page || pageSize) {
         page = parseInt(page) || 1;
@@ -28,10 +26,14 @@ export class StudentController {
           return res.sendStatus(400);
         }
 
-        let results = await Student.find({})
-          .sort({ grade: 1, lastName: 1, firstName: 1 })
-          .skip((page - 1) * pageSize)
-          .limit(pageSize);
+        let results = await Student.find({});
+
+        results.sort((a, b) => {
+          return compare(a.grade, b.grade)
+            || compareCaseInsensitive(a.lastName, b.lastName)
+            || compareCaseInsensitive(a.firstName, b.firstName);
+        })
+        .slice((page - 1) * pageSize, page * pageSize);
         
         res.status(200).json({
           totalCount: count,
@@ -96,3 +98,13 @@ export class StudentController {
     }
   
   }
+
+const compare = <T>(a: T, b: T): number => {
+  if (a > b) return +1;
+  if (a < b) return -1;
+  return 0;
+}
+
+const compareCaseInsensitive = (a: string, b: string): number => {
+  return compare(a.toLowerCase(), b.toLowerCase());
+}
