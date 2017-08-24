@@ -6,6 +6,7 @@ import { IStudentModel } from "./student.model";
 
 import { Controller } from "./controller.decorator";
 import { Get, Post, Put } from "./request-mapping.decorators";
+import { compare, compareCaseInsensitive } from "./util";
 
 @Controller("/student")
 export class StudentController {
@@ -72,15 +73,7 @@ export class StudentController {
   
   }
 
-const compare = <T>(a: T, b: T): number => {
-  if (a > b) return +1;
-  if (a < b) return -1;
-  return 0;
-}
 
-const compareCaseInsensitive = (a: string, b: string): number => {
-  return compare(a.toLowerCase(), b.toLowerCase());
-}
 
 interface IPagedResults<T> {
   totalCount: number;
