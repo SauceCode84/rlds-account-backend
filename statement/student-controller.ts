@@ -6,8 +6,7 @@ import { IStudentModel } from "./student.model";
 
 import { Controller } from "./controller.decorator";
 import { Get, Post, Put } from "./request-mapping.decorators";
-import { compare, compareCaseInsensitive } from "./util";
-import { PageOptions, IPagedResults } from "./pagination";
+import { StudentService } from "./student.service";
 
 @Controller("/student")
 export class StudentController {
@@ -73,45 +72,3 @@ export class StudentController {
     }
   
   }
-
-
-
-
-
-class StudentService {
-
-  async getStudents(options: PageOptions) {
-    let { page, pageSize } = options;
-    let results: IStudentModel[] | IPagedResults<IStudentModel>;
-    results = await Student.find({});
-
-    if (page || pageSize) {
-      page = parseInt(page) || 1;
-      pageSize = parseInt(pageSize) || 10;
-
-      let count = results.length;
-      let totalPages = Math.ceil(count / pageSize);
-
-      /*if (page > totalPages) {
-        throw new Error();
-      }*/
-
-      results = results.sort((a, b) => {
-        return compare(a.grade, b.grade)
-          || compareCaseInsensitive(a.lastName, b.lastName)
-          || compareCaseInsensitive(a.firstName, b.firstName);
-      })
-      .slice((page - 1) * pageSize, page * pageSize);
-      
-      results = {
-        totalCount: count,
-        totalPages: totalPages,
-        page: page,
-        results: results          
-      };
-    }
-
-    return results;
-  }
-
-}
