@@ -6,6 +6,7 @@ import { IStudentModel } from "./student.model";
 
 import { Controller } from "./controller.decorator";
 import { Get, Post, Put } from "./request-mapping.decorators";
+import { StudentService } from "./student.service";
 
 @Controller("/student")
 export class StudentController {
@@ -13,36 +14,11 @@ export class StudentController {
     @Get()
     public async getAll(req: Request, res: Response) {
       let includeSummary: boolean = req.query.includeSummary || false;
+      let { page, pageSize } = req.query;
 
-      let page = req.query.page;
-      let pageSize = req.query.pageSize;
+      let students = await new StudentService().getStudents({ page, pageSize });
 
-      if (page || pageSize) {
-        page = parseInt(page) || 1;
-        pageSize = parseInt(pageSize) || 10;
-
-        let count = await Student.find({}).count();
-        let totalPages = Math.ceil(count / pageSize);
-
-        if (page > totalPages) {
-          return res.sendStatus(400);
-        }
-
-        let results = await Student.find({})
-          .sort({ grade: 1, lastName: 1, firstName: 1 })
-          .skip((page - 1) * pageSize)
-          .limit(pageSize);
-        
-        res.status(200).json({
-          totalCount: count,
-          totalPages: totalPages,
-          page: page,
-          results: results          
-        })
-      } else {
-        let students = await Student.find({});
-        res.status(200).json(students);
-      }
+      res.json(students);
     }
 
     @Get("/:id")
