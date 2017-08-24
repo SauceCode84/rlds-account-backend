@@ -15,36 +15,9 @@ export class StudentController {
       let includeSummary: boolean = req.query.includeSummary || false;
       let { page, pageSize } = req.query;
 
-      if (page || pageSize) {
-        page = parseInt(page) || 1;
-        pageSize = parseInt(pageSize) || 10;
+      let students = await new StudentService().getStudents({ page, pageSize });
 
-        let count = await Student.find({}).count();
-        let totalPages = Math.ceil(count / pageSize);
-
-        if (page > totalPages) {
-          return res.sendStatus(400);
-        }
-
-        let results = await Student.find({});
-
-        results.sort((a, b) => {
-          return compare(a.grade, b.grade)
-            || compareCaseInsensitive(a.lastName, b.lastName)
-            || compareCaseInsensitive(a.firstName, b.firstName);
-        })
-        .slice((page - 1) * pageSize, page * pageSize);
-        
-        res.status(200).json({
-          totalCount: count,
-          totalPages: totalPages,
-          page: page,
-          results: results          
-        })
-      } else {
-        let students = await Student.find({});
-        res.status(200).json(students);
-      }
+      res.json(students);
     }
 
     @Get("/:id")
@@ -107,4 +80,51 @@ const compare = <T>(a: T, b: T): number => {
 
 const compareCaseInsensitive = (a: string, b: string): number => {
   return compare(a.toLowerCase(), b.toLowerCase());
+}
+
+interface IPagedResults<T> {
+  totalCount: number;
+  totalPages: number;
+  page: number;
+  results: T[];    
+}
+
+type PageOptions = { page?: any, pageSize?: any };
+
+class StudentService {
+
+  async getStudents(options: PageOptions) {
+    let { page, pageSize } = options;
+    let results: IStudentModel[] | IPagedResults<IStudentModel>;
+    results = await Student.find({});
+
+    if (page || pageSize) {
+      page = parseInt(page) || 1;
+      pageSize = parseInt(pageSize) || 10;
+
+      let count = results.length;
+      let totalPages = Math.ceil(count / pageSize);
+
+      /*if (page > totalPages) {
+        throw new Error();
+      }*/
+
+      results = results.sort((a, b) => {
+        return compare(a.grade, b.grade)
+          || compareCaseInsensitive(a.lastName, b.lastName)
+          || compareCaseInsensitive(a.firstName, b.firstName);
+      })
+      .slice((page - 1) * pageSize, page * pageSize);
+      
+      results = {
+        totalCount: count,
+        totalPages: totalPages,
+        page: page,
+        results: results          
+      };
+    }
+
+    return results;
+  }
+
 }
