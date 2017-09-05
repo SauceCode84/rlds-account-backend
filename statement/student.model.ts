@@ -14,9 +14,16 @@ export enum Grade {
   Advanced1
 }
 
+export enum PaymentOption {
+  Monthly = "monthly",
+  Termly = "termly",
+  Annually = "annually"
+}
+
 export interface IStudentModel extends Document {
   firstName: string;
   lastName: string;
   grade: number;
   emails: string[];
+  paymentOption: PaymentOption;
 }

@@ -9,8 +9,12 @@ import { StatementController } from "./statement-controller";
 import { PATH_METADATA } from "./constants";
 import { RoutePathScanner } from "./route-path-scanner";
 import { isNil, isFunction } from "./util";
-import { IStudentModel, Grade } from "./student.model";
+
+import { IStudentModel, Grade, PaymentOption } from "./student.model";
 import { Student } from "./student.schema";
+import { IAccountModel, IAccountLineModel, AccountType } from "./account.model";
+import { Account } from "./account.schema";
+
 import { routerMethodFactory } from "./routerMethodFactory";
 
 export class Server {
@@ -31,7 +35,8 @@ export class Server {
     this.api();
 
     // seed database, if need be
-    //this.seed();
+    //this.seedStudents();
+    //this.seedAccounts();
   }
 
   public config() {
@@ -100,53 +105,79 @@ export class Server {
     });
   }
 
-  public seed() {
+  public seedStudents() {
     let students = [
-      { firstName: "Hayley", lastName: "Hodnett", grade: Grade.PrePrimary },
-      { firstName: "Lynne", lastName: "Coleman", grade: Grade.PrePrimary },
-      { firstName: "Ciskia", lastName: "Smit", grade: Grade.PrePrimary },
-      { firstName: "Ava", lastName: "Muller", grade: Grade.PrePrimary },
-      { firstName: "Lindy", lastName: "du Preez", grade: Grade.Primary },
-      { firstName: "Aila", lastName: "Smith", grade: Grade.Primary },
-      { firstName: "Bulumko", lastName: "Mdaka", grade: Grade.Primary },
-      { firstName: "Ndileka", lastName: "Thupudi", grade: Grade.Primary },
-      { firstName: "Marunique", lastName: "Meyer", grade: Grade.Primary },
-      { firstName: "Phenyo", lastName: "Toumane", grade: Grade.Primary },
-      { firstName: "Kamogelo", lastName: "Sixpence", grade: Grade.Primary },
-      { firstName: "Charmoné", lastName: "van den Berg", grade: Grade.Primary },
-      { firstName: "Kgothatso", lastName: "Mathe", grade: Grade.Primary },
-      { firstName: "Kate", lastName: "Bester", grade: Grade.Primary },
-      { firstName: "Jerenique", lastName: "Griesel", grade: Grade.Primary },
-      { firstName: "Ariel", lastName: "von Pickartz", grade: Grade.Primary },
-      { firstName: "Ofentse", lastName: "Sibeko", grade: Grade.Primary },
-      { firstName: "Madison", lastName: "Tonkin", grade: Grade.Grade1 },
-      { firstName: "Jodie", lastName: "Alexander", grade: Grade.Grade1 },
-      { firstName: "Janika", lastName: "Kluever", grade: Grade.Grade1 },
-      { firstName: "Kaitlyn", lastName: "van Zyl", grade: Grade.Grade1 },
-      { firstName: "Naledi", lastName: "Mtambeka", grade: Grade.Grade2 },
-      { firstName: "Owethu", lastName: "Moyo", grade: Grade.Grade2 },
-      { firstName: "Summer", lastName: "Poolman", grade: Grade.Grade2 },
-      { firstName: "Busisiwe", lastName: "Sibeko", grade: Grade.Grade2 },
-      { firstName: "Vicky", lastName: "du Preez", grade: Grade.Grade2 },
-      { firstName: "Keleabetswe", lastName: "Diphoko", grade: Grade.Grade2 },
-      { firstName: "Tiyamike", lastName: "Dickinson", grade: Grade.Grade2 },
-      { firstName: "Keira", lastName: "Harris", grade: Grade.Grade2 },
-      { firstName: "Catherine", lastName: "Alexander", grade: Grade.Grade3 },
-      { firstName: "Andrea", lastName: "Hummerstone", grade: Grade.Grade3 },
-      { firstName: "Casidy", lastName: "Webb", grade: Grade.Grade3 },
-      { firstName: "Kaylan", lastName: "Webb", grade: Grade.Grade5 },
-      { firstName: "Danielle", lastName: "Oosthuizen", grade: Grade.Grade5 },
-      { firstName: "Tanna", lastName: "Goaté", grade: Grade.Grade5 },
-      { firstName: "Kelci", lastName: "Walters", grade: Grade.Grade5 },
-      { firstName: "Gabriella", lastName: "Colandrea", grade: Grade.Grade5 },
-      { firstName: "Hannah", lastName: "Griffith", grade: Grade.Grade5 },
-      { firstName: "Leischen", lastName: "le Roux", grade: Grade.Grade5 },
-      { firstName: "Derachelle", lastName: "Venski", grade: Grade.Advanced1 }
+      { firstName: "Hayley", lastName: "Hodnett", grade: Grade.PrePrimary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Lynne", lastName: "Coleman", grade: Grade.PrePrimary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Ciskia", lastName: "Smit", grade: Grade.PrePrimary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Ava", lastName: "Muller", grade: Grade.PrePrimary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Lindy", lastName: "du Preez", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Aila", lastName: "Smith", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Bulumko", lastName: "Mdaka", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Ndileka", lastName: "Thupudi", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Marunique", lastName: "Meyer", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Phenyo", lastName: "Toumane", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Kamogelo", lastName: "Sixpence", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Charmoné", lastName: "van den Berg", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Kgothatso", lastName: "Mathe", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Kate", lastName: "Bester", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Jerenique", lastName: "Griesel", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Ariel", lastName: "von Pickartz", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Ofentse", lastName: "Sibeko", grade: Grade.Primary, paymentOption: PaymentOption.Monthly },
+      { firstName: "Madison", lastName: "Tonkin", grade: Grade.Grade1, paymentOption: PaymentOption.Monthly },
+      { firstName: "Jodie", lastName: "Alexander", grade: Grade.Grade1, paymentOption: PaymentOption.Monthly },
+      { firstName: "Janika", lastName: "Kluever", grade: Grade.Grade1, paymentOption: PaymentOption.Monthly },
+      { firstName: "Kaitlyn", lastName: "van Zyl", grade: Grade.Grade1, paymentOption: PaymentOption.Monthly },
+      { firstName: "Naledi", lastName: "Mtambeka", grade: Grade.Grade2, paymentOption: PaymentOption.Monthly },
+      { firstName: "Owethu", lastName: "Moyo", grade: Grade.Grade2, paymentOption: PaymentOption.Monthly },
+      { firstName: "Summer", lastName: "Poolman", grade: Grade.Grade2, paymentOption: PaymentOption.Monthly },
+      { firstName: "Busisiwe", lastName: "Sibeko", grade: Grade.Grade2, paymentOption: PaymentOption.Monthly },
+      { firstName: "Vicky", lastName: "du Preez", grade: Grade.Grade2, paymentOption: PaymentOption.Monthly },
+      { firstName: "Keleabetswe", lastName: "Diphoko", grade: Grade.Grade2, paymentOption: PaymentOption.Monthly },
+      { firstName: "Tiyamike", lastName: "Dickinson", grade: Grade.Grade2, paymentOption: PaymentOption.Monthly },
+      { firstName: "Keira", lastName: "Harris", grade: Grade.Grade2, paymentOption: PaymentOption.Monthly },
+      { firstName: "Catherine", lastName: "Alexander", grade: Grade.Grade3, paymentOption: PaymentOption.Monthly },
+      { firstName: "Andrea", lastName: "Hummerstone", grade: Grade.Grade3, paymentOption: PaymentOption.Monthly },
+      { firstName: "Casidy", lastName: "Webb", grade: Grade.Grade3, paymentOption: PaymentOption.Monthly },
+      { firstName: "Kaylan", lastName: "Webb", grade: Grade.Grade5, paymentOption: PaymentOption.Monthly },
+      { firstName: "Danielle", lastName: "Oosthuizen", grade: Grade.Grade5, paymentOption: PaymentOption.Monthly },
+      { firstName: "Tanna", lastName: "Goaté", grade: Grade.Grade5, paymentOption: PaymentOption.Monthly },
+      { firstName: "Kelci", lastName: "Walters", grade: Grade.Grade5, paymentOption: PaymentOption.Monthly },
+      { firstName: "Gabriella", lastName: "Colandrea", grade: Grade.Grade5, paymentOption: PaymentOption.Monthly },
+      { firstName: "Hannah", lastName: "Griffith", grade: Grade.Grade5, paymentOption: PaymentOption.Monthly },
+      { firstName: "Leischen", lastName: "le Roux", grade: Grade.Grade5, paymentOption: PaymentOption.Monthly },
+      { firstName: "Derachelle", lastName: "Venski", grade: Grade.Advanced1, paymentOption: PaymentOption.Monthly }
     ];
 
     Student
       .insertMany(students)
       .then(result => console.log(`Inserted ${result.length} students...`));
+  }
+
+  public seedAccounts() {
+    let accountsReceiveable = new Account({
+      name: "Accounts Receivable",
+      type: AccountType.Asset
+    });
+    
+    accountsReceiveable.subAccounts.push(new Account({ name: "Stduent 1", type: AccountType.Asset }));
+    accountsReceiveable.subAccounts.push(new Account({ name: "Stduent 2", type: AccountType.Asset }));
+
+    let accounts = [
+      {
+        name: "Cash",
+        type: AccountType.Asset,
+        lines: [
+          { date: new Date(), description: "Payment from ...", debit: 100 },
+          { date: new Date(), description: "Payment from ...", debit: 250 }
+        ]
+      },
+      accountsReceiveable
+    ];
+
+    Account
+      .insertMany(accounts)
+      .then(result => console.log(`Inserted ${result.length} accounts...`));
   }
 
 }

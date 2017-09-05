@@ -6,11 +6,11 @@ import { Get } from "./request-mapping.decorators";
 
 import { Statement } from "./statement.schema";
 
-@Controller("/statement")
+@Controller("/student")
 export class StatementController {
   
-  @Get("/")
-  public async all(req: Request, res: Response, next: NextFunction) {
+  @Get("/:id/statement")
+  public async getStudentStatement(req: Request, res: Response, next: NextFunction) {
     let statements = await Statement.find({}).populate("student");
     res.status(200).json(statements);
   }
@@ -21,4 +21,3 @@ export class StatementController {
   }
 
 }
-
