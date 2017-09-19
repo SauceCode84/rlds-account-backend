@@ -4,7 +4,7 @@ import * as express from "express";
 import * as methodOverride from "method-override";
 import * as logger from "morgan";
 
-import { StudentController } from "./student-controller";
+//import { StudentController } from "./student-controller";
 import { StatementController } from "./statement-controller";
 import { PATH_METADATA } from "./constants";
 import { RoutePathScanner } from "./route-path-scanner";
@@ -16,6 +16,7 @@ import { IAccountModel, IAccountLineModel, AccountType } from "./account.model";
 import { Account } from "./account.schema";
 
 import { routerMethodFactory } from "./routerMethodFactory";
+import { studentRouter } from "./student-controller";
 
 export class Server {
 
@@ -80,7 +81,9 @@ export class Server {
   public api() {
     this.router = express.Router();
 
-    this.registerController(StudentController);
+    this.app.use("/student", studentRouter);
+
+    //this.registerController(StudentController);
     this.registerController(StatementController);
 
     this.app.use("/", this.router);

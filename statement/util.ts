@@ -14,3 +14,7 @@ export const compare = <T>(a: T, b: T): number => {
 export const compareCaseInsensitive = (a: string, b: string): number => {
   return compare(a.toLowerCase(), b.toLowerCase());
 };
+
+const isPromise = <T>(value): value is Promise<T> => {
+  return Promise.resolve(value) === value;
+}
