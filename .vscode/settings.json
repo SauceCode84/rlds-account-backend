@@ -1,8 +1,8 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-  "editor.fontFamily": "Fira Mono Medium, Consolas, 'Courier New', monospace",
+  "editor.fontFamily": "'Ubuntu Mono', monospace",
 
-  "editor.fontSize": 13,
+  "editor.fontSize": 15,
 
   "editor.fontWeight": "normal",
 

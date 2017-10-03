@@ -16,9 +16,9 @@ interface Student {
   lastName: string;
 }
 
-const connect = () => {
+const connect = (): Promise<any> => {
   return r.connect({
-    host: "192.168.101.150",
+    host: "localhost",
     port: 28015,
     db: "rlds"
   });
@@ -27,15 +27,17 @@ const connect = () => {
 const start = async () => {
   try {
     let conn = await connect();
+    console.log("Connected to rethink db!");
     
-    /*let cursor = await r.table("students")
+    let cursor = await r.table("students")
       .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
+      //.slice(3, 6)
       .pluck("firstName", "lastName", "grade")
       .run(conn);
     
     cursor.each((err, row) => {
       console.log(row);
-    });*/
+    });
 
     /*let group = await r.table("students")
       .group({ index: "gradeName" })
@@ -120,9 +122,9 @@ const start = async () => {
       .pluck("id", "name", "balance")
       .run(conn);
 
-      result.each((err, value) => {
-        console.log(value);
-      });*/
+    await result.eachAsync(row => {
+      console.log(row);
+    });*/
 
     
 
