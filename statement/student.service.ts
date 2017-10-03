@@ -1,13 +1,13 @@
 
 import { IStudentModel } from "./student.model";
-import { Student } from "./student.schema";
+//import { Student } from "./student.schema";
 
 import { PageOptions, IPagedResults } from "./pagination";
 
 import { compare, compareCaseInsensitive } from "./util";
 import { StatusError } from "./status.error";
 
-export class StudentService {
+/*export class StudentService {
   
     public async getStudents(options: PageOptions) {
       let { page, pageSize } = options;
@@ -53,3 +53,4 @@ export class StudentService {
     }
   
   }
+*/

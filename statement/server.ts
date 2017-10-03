@@ -4,16 +4,18 @@ import * as express from "express";
 import * as methodOverride from "method-override";
 import * as logger from "morgan";
 
+import * as dataAccess from "./data-access";
+
 //import { StudentController } from "./student-controller";
-import { StatementController } from "./statement-controller";
+//import { StatementController } from "./statement-controller";
 import { PATH_METADATA } from "./constants";
 import { RoutePathScanner } from "./route-path-scanner";
 import { isNil, isFunction } from "./util";
 
 import { IStudentModel, Grade, PaymentOption } from "./student.model";
-import { Student } from "./student.schema";
+//import { Student } from "./student.schema";
 import { IAccountModel, IAccountLineModel, AccountType } from "./account.model";
-import { Account } from "./account.schema";
+//import { Account } from "./account.schema";
 
 import { routerMethodFactory } from "./routerMethodFactory";
 import { studentRouter } from "./student-controller";
@@ -53,6 +55,9 @@ export class Server {
     // override
     this.app.use(methodOverride());
 
+    // setup data access
+    this.app.use(dataAccess.connect);
+
     // catch 404 and forward to error handler
     this.app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
       err.status = 404;
@@ -84,7 +89,7 @@ export class Server {
     this.app.use("/student", studentRouter);
 
     //this.registerController(StudentController);
-    this.registerController(StatementController);
+    //this.registerController(StatementController);
 
     this.app.use("/", this.router);
   }
@@ -108,7 +113,7 @@ export class Server {
     });
   }
 
-  public seedStudents() {
+  /*public seedStudents() {
     let students = [
       { firstName: "Hayley", lastName: "Hodnett", grade: Grade.PrePrimary, paymentOption: PaymentOption.Monthly },
       { firstName: "Lynne", lastName: "Coleman", grade: Grade.PrePrimary, paymentOption: PaymentOption.Monthly },
@@ -181,7 +186,7 @@ export class Server {
     Account
       .insertMany(accounts)
       .then(result => console.log(`Inserted ${result.length} accounts...`));
-  }
+  }*/
 
 }
 

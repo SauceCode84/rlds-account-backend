@@ -9,7 +9,10 @@ export interface IPagedResults<T> {
   results: T[];    
 }
 
-export type PageOptions = { page?: any, pageSize?: any };
+export interface PageOptions {
+  page?: any;
+  pageSize?: any;
+};
 
 export const extractPagination = (req: Request): PageOptions => {
   let { page, pageSize } = req.query;

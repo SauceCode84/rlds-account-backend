@@ -1,4 +1,4 @@
-
+/*
 import { Schema, SchemaTypes } from "mongoose";
 import { IAccountModel } from "./account.model";
 
@@ -21,3 +21,4 @@ export const AccountSchema: Schema = new Schema({
 let connection = DataAccess.mongooseConnection;
 
 export const Account = connection.model<IAccountModel>("account", AccountSchema, "accounts");
+*/

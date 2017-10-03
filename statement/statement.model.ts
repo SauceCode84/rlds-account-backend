@@ -1,5 +1,4 @@
 
-import { Document } from "mongoose";
 import { IStudentModel } from "./student.model";
 
 export interface IUserModel {
@@ -21,7 +20,7 @@ export interface IStatementLineModel {
   balance?: number;
 }
 
-export interface IStatementModel extends Document {
+export interface IStatementModel {
   student: IStudentModel;
   lines: IStatementLineModel[];
 }

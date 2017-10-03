@@ -1,4 +1,4 @@
-
+/*
 import { Schema, SchemaTypes } from "mongoose";
 import { IStudentModel } from "./student.model";
 
@@ -17,3 +17,4 @@ export const StudentSchema: Schema = new Schema({
 let connection = DataAccess.mongooseConnection;
 
 export const Student = connection.model<IStudentModel>("student", StudentSchema, "students");
+*/

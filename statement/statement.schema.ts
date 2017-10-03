@@ -1,4 +1,4 @@
-
+/*
 import { Schema, SchemaTypes } from "mongoose";
 import { LineType, IStatementModel } from "./statement.model";
 
@@ -37,3 +37,4 @@ export const StatementSchema: Schema = new Schema({
 let connection = DataAccess.mongooseConnection;
 
 export const Statement = connection.model<IStatementModel>("statement", StatementSchema, "statements");
+*/

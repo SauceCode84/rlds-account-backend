@@ -35,6 +35,8 @@ const start = async () => {
       .pluck("firstName", "lastName", "grade")
       .run(conn);
     
+    //console.log(cursor);
+
     cursor.each((err, row) => {
       console.log(row);
     });

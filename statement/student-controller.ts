@@ -1,12 +1,12 @@
 
 import { NextFunction, Request, Response, Router, RequestHandler, ErrorRequestHandler } from "express";
 
-import { Student } from "./student.schema";
+//import { Student } from "./student.schema";
 import { IStudentModel } from "./student.model";
 
 import { Controller } from "./controller.decorator";
 import { Get, Post, Put } from "./request-mapping.decorators";
-import { StudentService } from "./student.service";
+//import { StudentService } from "./student.service";
 import { StatusError } from "./status.error";
 import { PageOptions, IPagedResults, paginateResults, validPageOptions, extractPagination } from "./pagination";
 import { compare, compareCaseInsensitive } from "./util";
@@ -105,8 +105,8 @@ const studentCompare = (a: IStudentModel, b: IStudentModel) => {
 }
 
 const fetchPagedStudents = async (options: PageOptions) => {
-  let students = await Student.find({});
-  return paginateResults(students.sort(studentCompare))(options);
+  /*let students = await Student.find({});
+  return paginateResults(students.sort(studentCompare))(options);*/
 }
 
 const getPagedStudents = async (req: Request, res: Response, next: NextFunction) => {
@@ -124,26 +124,26 @@ const getPagedStudents = async (req: Request, res: Response, next: NextFunction)
 }
 
 const getStudents = async (req: Request, res: Response, next: NextFunction) => {
-  res.json(await Student.find({}));
+  //res.json(await Student.find({}));
 }
 
 const getStudentNames = async (req: Request, res: Response) => {
-  let students = await Student.find({}).select("firstName lastName grade");
+  //let students = await Student.find({}).select("firstName lastName grade");
   
-  res.json(students.sort(studentCompare));
+  //res.json(students.sort(studentCompare));
 }
 
 const getStudentById = async (req: Request, res: Response, next: NextFunction) => {
   let { id } = req.params;
   
   try {
-    let student = await Student.findById(id);
+    /*let student = await Student.findById(id);
 
     if (!student) {
       return res.sendStatus(404);
     }
 
-    res.json(student);
+    res.json(student);*/
   } catch (err) {
     next(err);
   }
@@ -151,10 +151,10 @@ const getStudentById = async (req: Request, res: Response, next: NextFunction) =
 
 const postNewStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    let newStudent = new Student(req.body);
+    /*let newStudent = new Student(req.body);
     await newStudent.save();
 
-    res.json({ id: newStudent.id });
+    res.json({ id: newStudent.id });*/
   } catch (err) {
     if (err.name === "ValidationError") {
       return res.status(400).send(err.errors);
@@ -167,14 +167,14 @@ const postNewStudent = async (req: Request, res: Response, next: NextFunction) =
 const putStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let { id } = req.params;
-    let student = await Student.findById(id);
+    /*let student = await Student.findById(id);
 
     if (!student) {
       return res.sendStatus(404);
     }
 
     await student.update(req.body);
-    res.sendStatus(204);
+    res.sendStatus(204);*/
   } catch (err) {
     next(err);
   }

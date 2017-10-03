@@ -1,5 +1,4 @@
 
-import { Document } from "mongoose";
 import { IStatementModel } from "./statement.model";
 
 export enum Grade {
@@ -20,7 +19,7 @@ export enum PaymentOption {
   Annually = "annually"
 }
 
-export interface IStudentModel extends Document {
+export interface IStudentModel {
   firstName: string;
   lastName: string;
   grade: number;
