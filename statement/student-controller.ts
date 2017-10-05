@@ -20,7 +20,10 @@ const studentCount = (connection: any): Promise<number> =>
   r.table("students").count().run(connection);
 
 const findStudent = (id: string, connection: any): Promise<any> =>
-  r.table("students").get(id).run(connection);
+  r.table("students")
+   .get(id)
+   .without("contacts")
+   .run(connection);
 
 const paginationSliceParams = (options: PageOptions) => {
   let { page, pageSize } = options;
@@ -229,6 +232,30 @@ const postStudentContact = async (req: Request & RethinkDb, res: Response, next:
   }
 } 
 
+const deleteStudentContact = async (req: RethinkRequest, res: Response, next: NextFunction) => {
+  let { id, contactId } = req.params;
+
+  try {
+    await r.table("contacts")
+      .get(contactId)
+      .delete()
+      .run(req.rdb);
+
+    await r.table("students")
+      .get(id)
+      .update(row => {
+        return {
+          contacts: row("contacts").filter(contact => contact.ne(contactId))
+        }
+      })
+      .run(req.rdb);
+
+    res.sendStatus(204);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export const studentRouter = Router();
 
 studentRouter
@@ -239,6 +266,7 @@ studentRouter
   .put("/:id", putStudent)
   .delete("/:id", deleteStudent)
   .get("/:id/contacts", getStudentContacts)
-  .post("/:id/contacts", postStudentContact);
+  .post("/:id/contacts", postStudentContact)
+  .delete("/:id/contacts/:contactId", deleteStudentContact);
   
 studentRouter.use(statusErrorHandler);
