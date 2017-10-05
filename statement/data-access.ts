@@ -16,10 +16,7 @@ export const connect = async (req: Request & RethinkDb, res: Response, next: Nex
 
   const _connect = async () => {
     try {
-      console.log("Connecting to RethinkDb...");
       const connection = await r.connect(connectionConfig);
-
-      console.log("Connected to RethinkDb!");
 
       req.rdb = connection;
       next();

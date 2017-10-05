@@ -2,7 +2,7 @@
 import { IStudentModel } from "./student.model";
 //import { Student } from "./student.schema";
 
-import { PageOptions, IPagedResults } from "./pagination";
+import { PageOptions, PagedResults } from "./pagination";
 
 import { compare, compareCaseInsensitive } from "./util";
 import { StatusError } from "./status.error";
