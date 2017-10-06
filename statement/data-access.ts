@@ -11,6 +11,14 @@ export interface RethinkDb {
   rdb: any;
 }
 
+type OnConnectCallback = (err, connection?) => void;
+
+export const onConnect = (callback: OnConnectCallback) => {
+  r.connect(connectionConfig)
+   .then(connection => callback(null, connection))
+   .catch(err => callback(err));
+}
+
 export const connect = async (req: Request & RethinkDb, res: Response, next: NextFunction) => {
   let count = 0;
 
