@@ -8,7 +8,11 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Program",
-      "program": "${workspaceRoot}\\dist\\account.js"
+      "program": "${workspaceRoot}/statement/main.ts",
+      "cwd": "${workspaceRoot}",
+      "outFiles": [
+        "${workspaceRoot}/dist/statement/**/*.js"
+      ]
     }
   ]
 }
