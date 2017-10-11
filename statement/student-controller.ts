@@ -2,7 +2,7 @@ import { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response, R
 
 import * as r from "rethinkdb";
 
-import { RethinkDb } from "./data-access";
+import { RethinkDb, onConnect } from "./data-access";
 import { StatusError } from "./status.error";
 import { PageOptions, PagedResults, paginateResults, validPageOptions, extractPagination } from "./pagination";
 
@@ -270,3 +270,201 @@ studentRouter
   .delete("/:id/contacts/:contactId", deleteStudentContact);
   
 studentRouter.use(statusErrorHandler);
+
+onConnect(async (err, connection) => {
+  console.log("studentChangeFeed");
+  let studentChangeFeed = await r.table("students").changes().run(connection);
+
+  studentChangeFeed.each((err, change: Change<Student>) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    console.log(change);
+
+    //let changeSet = getNewValues(change, "firstName", "lastName");
+    let changeSet = getChangeDiff(change.new_val, change.old_val);
+
+    console.log("student changes...", changeSet);
+  });
+});
+
+interface Change<T> {
+  old_val?: T;
+  new_val?: T;
+}
+
+interface Student {
+  firstName: string;
+  lastName: string;
+  account: {
+    balance: number;
+    lastPayment?: Date;
+  }
+}
+
+type StudentKeys = keyof Student;
+
+const isInsert = <T>(change: Change<T>): boolean => change.new_val && change.old_val === null;
+const isDelete = <T>(change: Change<T>): boolean => change.old_val && change.new_val === null;
+const isUpdate = <T>(change: Change<T>): boolean => change.old_val !== null && change.new_val !== null;
+
+const hasValueChanged = <T, K extends keyof T>(change: Change<T>, key: K) => {
+  if (isUpdate(change)) {
+    return change.old_val[key] === change.new_val[key];
+  }
+
+  return true;  
+}
+
+type ChangeSet<T, K extends keyof T> = { [key: string]: T[K] };
+
+const getNewValues = <T, K extends keyof T>(change: Change<T>, ...keys: K[]): ChangeSet<T, K> => {
+  let changeSet: ChangeSet<T, K> = {};
+
+  keys = keys || (Object.keys(change) as K[]);
+
+  keys.forEach(key => {
+    let newValue = change.new_val;
+
+    if (!newValue || !newValue[key]) {
+      return;
+    }
+
+    changeSet[key] = change.new_val[key];
+  });
+
+  return changeSet;
+};
+
+const checkNested = (obj: Object, ...args: string[]): boolean => {
+  for (let i = 0; i < args.length; i++) {
+    if (!obj || !obj.hasOwnProperty(args[i])) {
+      return false;
+    }
+
+    obj = obj[args[i]];
+  }
+
+  return true;
+}
+
+const getChangeDiff = (value1, value2) => {
+  if (value1 === value2) {
+    return null;
+  }
+
+  const clone = (value) => {
+    if (value == null || typeof value != "object") {
+      return value;
+    }
+
+    let isArray = Array.isArray(value);
+    let obj = isArray ? [] : {};
+
+    if (!isArray) {
+      Object.assign({}, value);
+    }
+
+    for (let i in value) {
+      obj[i] = clone(value[i]);
+    }
+
+    return obj;
+  }
+
+  // different types or array compared to non-array
+  if (typeof value1 !== typeof value2 || Array.isArray(value1) !== Array.isArray(value2)) {
+    return [clone(value1), clone(value2)];
+  }
+
+  // different scalars... no cloning needed
+  if (typeof value1 !== "object" && value1 !== value2) {
+    return [value1, value2];
+  }
+
+  // one is null and the other isn't
+  // both null would have been caught by the '===' comparison above
+  if (value1 == null || value2 == null) {
+    return [clone(value1), clone(value2)];
+  }
+
+  let isArray = Array.isArray(value1);
+
+  let left = isArray ? [] : {};
+  let right = isArray ? [] : {};
+
+  for (let i in value1) {
+    if (!value2.hasOwnProperty(i)) {
+      left[i] = clone(value1[i]);
+    } else {
+      let subDiff = getChangeDiff(value1[i], value2[i]);
+
+      if (isArray || subDiff) {
+        if (subDiff &&
+            areDiffsObjects(subDiff[0], subDiff[1]) &&
+            areDiffsEmpty(subDiff[0], subDiff[1])) {
+          continue;
+        }
+
+        if (subDiff && arraysEqual(subDiff[0], subDiff[1])) {
+          continue;
+        }
+
+        left[i] = subDiff ? clone(subDiff[0]) : null;
+        right[i] = subDiff ? clone(subDiff[1]) : null;
+      }
+    }
+  }
+
+  for (let i in value2) {
+    if (!value1.hasOwnProperty(i)) {
+      right[i] = clone(value2[i]);
+    }
+  }
+
+  return [left, right];
+}
+
+const areDiffsObjects = (left, right): boolean => {
+  /*if (!left || !right) {
+    return false;
+  }*/
+
+  return isObject(left) && isObject(right);
+}
+
+const areDiffsEmpty = (left, right): boolean => {
+  return isEmpty(left) && isEmpty(right);
+}
+
+const isEmpty = (obj: Object): boolean => {
+  for (let key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+const arraysEqual = (a: any, b: any): boolean => {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length != b.length) return false;
+
+  for (let i = 0; i < a.length; ++i) {
+    if (a[i] !== b[i]) return false;
+  }
+
+  return true;
+}
+
+const isObject = (value): value is Object => {
+  return typeof value === "object";
+}
+
+const isArray = (value): value is any[] => {
+  return Array.isArray(value);
+}
