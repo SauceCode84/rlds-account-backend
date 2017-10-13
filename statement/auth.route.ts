@@ -23,8 +23,12 @@ authRouter
       return res.status(401).send(err.message);
     }
 
-    let payload = { id: user.id, email: user.email };
-    let token = jwt.sign(payload, authConfig.jwtSecret, { expiresIn: "1m" });
+    let payload = {
+      id: user.id,
+      email: user.email
+    };
+
+    let token = jwt.sign(payload, authConfig.jwtSecret, { expiresIn: "1d" });
 
     res.json({ token });    
   });
