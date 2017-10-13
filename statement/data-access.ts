@@ -19,6 +19,10 @@ export const onConnect = (callback: OnConnectCallback) => {
    .catch(err => callback(err));
 }
 
+export const getConnection = (): Promise<{}> => {
+  return r.connect(connectionConfig);
+}
+
 export const connect = async (req: Request & RethinkDb, res: Response, next: NextFunction) => {
   let count = 0;
 

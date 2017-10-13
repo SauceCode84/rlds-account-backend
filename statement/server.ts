@@ -19,6 +19,9 @@ import { IAccountModel, IAccountLineModel, AccountType } from "./account.model";
 
 import { routerMethodFactory } from "./routerMethodFactory";
 import { studentRouter } from "./student-controller";
+import * as auth from "./auth";
+import { authRouter } from "./auth.route";
+import { userRouter } from "./user.route";
 
 export class Server {
 
@@ -55,6 +58,8 @@ export class Server {
     // override
     this.app.use(methodOverride());
 
+    this.app.use(auth.initialize());
+
     // setup data access
     this.app.use(dataAccess.connect);
 
@@ -71,7 +76,7 @@ export class Server {
     this.app.disable("etag");
 
     // allow cross domain
-    this.app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    this.app.use((req, res, next) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Credentials", "true");
       res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,PATCH,DELETE");
@@ -86,6 +91,8 @@ export class Server {
   public api() {
     this.router = express.Router();
 
+    this.app.use("/", authRouter);
+    this.app.use("/", userRouter);
     this.app.use("/student", studentRouter);
 
     //this.registerController(StudentController);
