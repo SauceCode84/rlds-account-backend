@@ -59,6 +59,8 @@ export const validateUser = async (email: string, password: string): Promise<Use
   }
 }
 
+const hashPassword = (password: string) => bcrypt.hash(password, 8);
+
 /**
  * Creates a user with the given email and password, and returns the new user's id
  * @param email The new user's email
@@ -66,7 +68,7 @@ export const validateUser = async (email: string, password: string): Promise<Use
  */
 export const createUser = async (email: string, password: string): Promise<string> => {
   try {
-    let hashedPassword = await bcrypt.hash(password, 8);
+    let hashedPassword = await hashPassword(password);
     let newUser = {
       email,
       password: hashedPassword
@@ -84,4 +86,18 @@ export const createUser = async (email: string, password: string): Promise<strin
     console.error(err);
     throw err;
   }
+}
+
+/**
+ * Updates the user with id with the password provided
+ * @param id The user's id
+ * @param password The user's new password
+ */
+export const changePassword = async (id: string, password: string) => {
+  let hashedPassword = await hashPassword(password);
+  let connection = await getConnection();
+
+  let result = await r.table("users")
+    .update({ password: hashedPassword })
+    .run(connection);
 }
