@@ -16,7 +16,7 @@ class Auth {
       let user = await getUserById(payload.id);
   
       if (user) {
-        return done(null, { id: user.id });
+        return done(null, { id: user.id, roles: user.roles });
       } else {
         return done(new Error("User not found"));
       }
