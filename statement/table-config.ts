@@ -10,11 +10,14 @@ export interface TableConfig {
   name: string;
   primaryKey?: string;
   indices?: IndexConfig[];
-  seedOnCreate: boolean,
   seed?: string | ((connection: any) => void | Promise<void>);
 }
 
 export const tableConfigs: TableConfig[] = [
+  {
+    name: "users",
+    primaryKey: "id"
+  },
   {
     name: "students",
     primaryKey: "id",
@@ -24,12 +27,14 @@ export const tableConfigs: TableConfig[] = [
         options: r.row("grade")("sortOrder")
       }
     ],
-    seedOnCreate: true,
     seed: "../../seed-data/students.json"
   },
   {
-    name: "users",
-    primaryKey: "id",
-    seedOnCreate: false
+    name: "grades",
+    seed: "../../seed-data/grades.json"
+  },
+  {
+    name: "fees",
+    seed: "../../seed-data/fees.json"
   }
 ];

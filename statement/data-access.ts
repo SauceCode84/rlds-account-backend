@@ -72,7 +72,10 @@ onConnect(async (err, connection) => {
     let tableCreated = false;
 
     if (tables.indexOf(tableName) == -1) {
-      await r.tableCreate(tableName, { primaryKey: tableConfig.primaryKey }).run(connection);
+      let primaryKey = tableConfig.primaryKey || "id";
+
+      await r.tableCreate(tableName, { primaryKey }).run(connection);
+
       console.log(`Created '${tableName}' table...`);
       tableCreated = true;
     } else {
@@ -90,11 +93,12 @@ onConnect(async (err, connection) => {
       await Promise.all(indexTasks);
     }
 
-    if (tableCreated && tableConfig.seedOnCreate) {
+    if (tableCreated && tableConfig.seed) {
       console.log(`Seeding data for '${tableName}'...`);
       
       if (typeof tableConfig.seed === "string") {
-        await seedFromFile(tableConfig.seed, tableName, connection);
+        let inserted = await seedFromFile(tableConfig.seed, tableName, connection);
+        console.log(`Inserted ${inserted} document(s) for table '${tableName}'`);
       } else {
         await Promise.resolve(tableConfig.seed(connection));
       }
