@@ -1,7 +1,7 @@
 import { Request, Router } from "express";
 
 import * as auth from "./auth";
-import { createUser, getUserById, changePassword } from "./user.service";
+import { createUser, getUserById, changePassword, getUsers } from "./user.service";
 
 export const userRouter = Router();
 
@@ -20,17 +20,18 @@ userRouter
 
 userRouter
   .get("/users", auth.authenticate(), async (req, res) => {
-    
+    res.json(await getUsers());
   });
 
 userRouter
   .post("/users/changePassword", auth.authenticate(), async (req, res) => {
-    let { id } = await getUserById(req.user.id);
     let { password } = req.body;
 
     if (!password || typeof password !== "string" || password.length == 0) {
       return res.sendStatus(400);
     }
+
+    let { id } = await getUserById(req.user.id);
 
     await changePassword(id, password);
 

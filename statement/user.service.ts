@@ -4,6 +4,22 @@ import * as bcrypt from "bcrypt";
 import { User } from "./user.model";
 import { getConnection } from "./data-access";
 
+export const getUsers = async (): Promise<User[]> => {
+  try {
+    let connection = await getConnection();
+    let userSeq = await r.table("users")
+      .without("password")
+      .run(connection);
+
+    let users: User[] = userSeq.toArray();
+
+    return users;
+  } catch (err) {
+    console.error(err);
+    throw(err);
+  }
+}
+
 /**
  * Returns the user for the given id, or returns null if the user is not found
  * @param id The user id to search for
