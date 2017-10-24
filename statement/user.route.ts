@@ -1,7 +1,7 @@
 import { Request, Router } from "express";
 
 import * as auth from "./auth";
-import { createUser, getUserById, changePassword, getUsers } from "./user.service";
+import { createUser, getUserById, changePassword, getUsers, updateUser, userExists } from "./user.service";
 
 export const userRouter = Router();
 
@@ -10,7 +10,10 @@ interface AuthUser {
   roles: string[];
 }
 
-type AuthRequest = Request & { user: AuthUser };
+interface AuthRequest extends Request {
+  user: AuthUser;
+}
+
 
 userRouter
   .get("/me", auth.authenticate(), async (req: AuthRequest, res) => {
@@ -21,6 +24,21 @@ userRouter
 userRouter
   .get("/users", auth.authenticate(), async (req, res) => {
     res.json(await getUsers());
+  });
+
+userRouter
+  .put("/users/:id", auth.authenticate(), async (req, res) => {
+    let { id } = req.params;
+    let userValid = await userExists(id);
+
+    if (!userValid) {
+      return res.sendStatus(400);
+    }
+
+    let { name, roles } = req.body;
+
+    await updateUser(id, { name, roles });
+    res.sendStatus(200);
   });
 
 userRouter

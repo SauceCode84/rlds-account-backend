@@ -44,6 +44,25 @@ export const getUserById = async (id: string, includePassword = false): Promise<
 }
 
 /**
+ * Returns whether or not the user exists, using the specified user id
+ * @param id The user's id
+ */
+export const userExists = async (id: string): Promise<boolean> => {
+  try {
+    let connection = await getConnection();
+    let userCount: number = await r.table("users")
+      .filter({ id })
+      .count()
+      .run(connection);
+
+    return userCount > 0;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+/**
  * Validates the user, based on the email and password combination, and returns the User object on success
  * @param email The user's email to validate
  * @param password The user's password to validate
@@ -81,6 +100,7 @@ const hashPassword = (password: string) => bcrypt.hash(password, 8);
  * Creates a user with the given email and password, and returns the new user's id
  * @param email The new user's email
  * @param password The new user's password
+ * @returns The new user's id
  */
 export const createUser = async (email: string, password: string): Promise<string> => {
   try {
@@ -116,4 +136,23 @@ export const changePassword = async (id: string, password: string) => {
   let result = await r.table("users")
     .update({ password: hashedPassword })
     .run(connection);
+}
+
+/**
+ * Update the specified user with the given changes
+ * @param id The user's id
+ * @param changes The changes to update the user with
+ */
+export const updateUser = async (id: string, changes: { name?: string, roles?: string[] }): Promise<void> => {
+  try {
+    let connection = await getConnection();
+
+    await r.table("users")
+      .get(id)
+      .update(changes)
+      .run(connection);
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 }
