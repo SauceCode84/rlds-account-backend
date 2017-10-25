@@ -2,7 +2,7 @@ import { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response, R
 
 import * as r from "rethinkdb";
 
-import { RethinkDb, onConnect } from "./data-access";
+import { onConnect, RethinkRequest } from "./data-access";
 import { StatusError } from "./status.error";
 import { PageOptions, PagedResults, paginateResults, validPageOptions, extractPagination } from "./pagination";
 
@@ -13,8 +13,6 @@ const statusErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
 
   next(err);
 }
-
-type RethinkRequest = Request & RethinkDb;
 
 const studentCount = (connection: any): Promise<number> =>
   r.table("students").count().run(connection);
@@ -66,7 +64,7 @@ const getPagedStudents = async (req: RethinkRequest, res: Response, next: NextFu
   }
 }
 
-const getStudents = async (req: Request & RethinkDb, res: Response, next: NextFunction) => {
+const getStudents = async (req: RethinkRequest, res: Response, next: NextFunction) => {
   try {
     let cursor = await r.table("students")
       .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
@@ -79,7 +77,7 @@ const getStudents = async (req: Request & RethinkDb, res: Response, next: NextFu
   }
 }
 
-const getStudentNames = async (req: Request & RethinkDb, res: Response, next: NextFunction) => {
+const getStudentNames = async (req: RethinkRequest, res: Response, next: NextFunction) => {
   try {
     let cursor = await r.table("students")
       .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
@@ -93,7 +91,7 @@ const getStudentNames = async (req: Request & RethinkDb, res: Response, next: Ne
   }
 }
 
-const getStudentById = async (req: Request & RethinkDb, res: Response, next: NextFunction) => {
+const getStudentById = async (req: RethinkRequest, res: Response, next: NextFunction) => {
   let { id } = req.params;
   
   try {
@@ -117,7 +115,7 @@ const defaultStudent = {
   contacts: []
 };
 
-const postNewStudent = async (req: Request & RethinkDb, res: Response, next: NextFunction) => {
+const postNewStudent = async (req: RethinkRequest, res: Response, next: NextFunction) => {
   try {
     let newStudent = Object.assign(req.body, defaultStudent);
     
@@ -137,7 +135,7 @@ const postNewStudent = async (req: Request & RethinkDb, res: Response, next: Nex
   }
 }
 
-const putStudent = async (req: Request & RethinkDb, res: Response, next: NextFunction) => {
+const putStudent = async (req: RethinkRequest, res: Response, next: NextFunction) => {
   let { id } = req.params;
 
   try {
@@ -158,7 +156,7 @@ const putStudent = async (req: Request & RethinkDb, res: Response, next: NextFun
   }
 }
 
-const deleteStudent = async (req: Request & RethinkDb, res: Response, next: NextFunction) => {
+const deleteStudent = async (req: RethinkRequest, res: Response, next: NextFunction) => {
   let { id } = req.params;
 
   try {
@@ -179,7 +177,7 @@ const deleteStudent = async (req: Request & RethinkDb, res: Response, next: Next
   }
 }
 
-const getStudentContacts = async (req: Request & RethinkDb, res: Response, next: NextFunction) => {
+const getStudentContacts = async (req: RethinkRequest, res: Response, next: NextFunction) => {
   let { id } = req.params;
   
   try {
@@ -208,7 +206,7 @@ const getStudentContacts = async (req: Request & RethinkDb, res: Response, next:
   }
 }
 
-const postStudentContact = async (req: Request & RethinkDb, res: Response, next: NextFunction) => {
+const postStudentContact = async (req: RethinkRequest, res: Response, next: NextFunction) => {
   let { id } = req.params;
 
   try {
@@ -467,3 +465,28 @@ const isObject = (value): value is Object => {
 const isArray = (value): value is any[] => {
   return Array.isArray(value);
 }
+
+/*onConnect(async (err, connection) => {
+  let results = await r.table("transactions")
+  .pluck("id", "date")
+  .run(connection);
+
+  let values: { id: string, date: string}[] = await results.toArray();
+  console.log(values);
+  
+  let newValues = values.map(value => {
+    return {
+      id: value.id,
+      date: (new Date(value.date)).toISOString()
+    }
+  })
+  
+  console.log(newValues);
+  
+  newValues.forEach(async newValue => {
+    await r.table("transactions")
+      .get(newValue.id)
+      .update({ date: r.ISO8601(newValue.date) })
+      .run(connection);
+  });
+})*/

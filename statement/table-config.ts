@@ -47,6 +47,12 @@ export const tableConfigs: TableConfig[] = [
   },
   {
     name: "transactions",
+    indices:[
+      {
+        name: "accountId",
+        options: r.row("accountId")
+      }
+    ],
     seed: "../../seed-data/transactions.json"
   }
 ];

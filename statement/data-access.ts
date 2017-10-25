@@ -10,9 +10,9 @@ const connectionConfig = {
   db: "rlds"
 };
 
-export interface RethinkDb {
+export interface RethinkRequest extends Request {
   rdb: any;
-}
+};
 
 type OnConnectCallback = (err, connection?) => void;
 
@@ -110,7 +110,7 @@ export const getConnection = (): Promise<{}> => {
   return r.connect(connectionConfig);
 }
 
-export const connect = async (req: Request & RethinkDb, res: Response, next: NextFunction) => {
+export const connect = async (req: RethinkRequest, res: Response, next: NextFunction) => {
   let count = 0;
 
   const _connect = async () => {
