@@ -253,6 +253,22 @@ const deleteStudentContact = async (req: RethinkRequest, res: Response, next: Ne
   }
 }
 
+const getStudentTransactions = async (req: RethinkRequest, res: Response, next: NextFunction) => {
+  let { id } = req.params;
+
+  try {
+    let txs = await r.table("transactions")
+      .filter({ accountId: id })
+      .without("accountId")
+      .orderBy("date")
+      .run(req.rdb);
+
+    res.json(txs);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export const studentRouter = Router();
 
 studentRouter
@@ -264,7 +280,8 @@ studentRouter
   .delete("/:id", deleteStudent)
   .get("/:id/contacts", getStudentContacts)
   .post("/:id/contacts", postStudentContact)
-  .delete("/:id/contacts/:contactId", deleteStudentContact);
+  .delete("/:id/contacts/:contactId", deleteStudentContact)
+  .get("/:id/transactions", getStudentTransactions);
   
 studentRouter.use(statusErrorHandler);
 
