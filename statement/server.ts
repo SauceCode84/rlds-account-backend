@@ -93,7 +93,7 @@ export class Server {
 
     this.app.use("/", authRouter);
     this.app.use("/", userRouter);
-    this.app.use("/student", studentRouter);
+    this.app.use("/students", studentRouter);
 
     //this.registerController(StudentController);
     //this.registerController(StatementController);

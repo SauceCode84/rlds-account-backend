@@ -41,7 +41,6 @@ const pagedStudents = async (connection: any, { pageStart, pageEnd }) => {
   let cursor = await r.table("students")
     .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
     .slice(pageStart, pageEnd)
-    .pluck("firstName", "lastName", "grade")
     .run(connection);
 
   return await cursor.toArray();

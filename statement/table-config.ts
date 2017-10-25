@@ -19,6 +19,14 @@ export const tableConfigs: TableConfig[] = [
     primaryKey: "id"
   },
   {
+    name: "grades",
+    seed: "../../seed-data/grades.json"
+  },
+  {
+    name: "fees",
+    seed: "../../seed-data/fees.json"
+  },
+  {
     name: "students",
     primaryKey: "id",
     indices: [
@@ -30,11 +38,27 @@ export const tableConfigs: TableConfig[] = [
     seed: "../../seed-data/students.json"
   },
   {
-    name: "grades",
-    seed: "../../seed-data/grades.json"
+    name: "contacts",
+    seed: "../../seed-data/contacts.json"
   },
   {
-    name: "fees",
-    seed: "../../seed-data/fees.json"
+    name: "accounts",
+    seed: "../../seed-data/accounts.json"
+  },
+  {
+    name: "transactions",
+    seed: "../../seed-data/transactions.json"
   }
 ];
+
+/*
+
+distinct class fees query
+
+r.db("rlds")
+.table("fees")
+.map(doc => r.object(doc("type"), true)) // return { <type>: true }
+.reduce((left, right) => left.merge(right))
+.keys() // return all the keys of the final document
+
+*/
