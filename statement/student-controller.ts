@@ -2,6 +2,8 @@ import { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response, R
 
 import * as r from "rethinkdb";
 
+import "../array.last";
+
 import { onConnect, RethinkRequest } from "./data-access";
 import { StatusError } from "./status.error";
 import { PageOptions, PagedResults, paginateResults, validPageOptions, extractPagination } from "./pagination";
@@ -17,11 +19,20 @@ const statusErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
 const studentCount = (connection: any): Promise<number> =>
   r.table("students").count().run(connection);
 
-const findStudent = (id: string, connection: any): Promise<any> =>
-  r.table("students")
-   .get(id)
-   .without("contacts")
-   .run(connection);
+const findStudent = (id: string, connection: any): Promise<any> => {
+  return r.table("students")
+    .get(id)
+    .without("contacts")
+    .run(connection);
+}
+
+const studentExists = async (id: string, connection: any) => {
+  let student = await r.table("students")
+    .get(id)
+    .run(connection);
+
+  return student !== undefined && student !== null;
+}
 
 const paginationSliceParams = (options: PageOptions) => {
   let { page, pageSize } = options;
@@ -257,6 +268,12 @@ const getStudentTransactions = async (req: RethinkRequest, res: Response, next: 
   let { id } = req.params;
 
   try {
+    let exists = await studentExists(id, req.rdb);
+    
+    if (!exists) {
+      return res.sendStatus(404);
+    }
+
     let txs = await r.table("transactions")
       .filter({ accountId: id })
       .without("accountId")
@@ -284,6 +301,60 @@ studentRouter
   .get("/:id/transactions", getStudentTransactions);
   
 studentRouter.use(statusErrorHandler);
+
+onConnect(async (err, connection) => {
+  console.log("transactionChangeFeed");
+
+  let txChangeFeed = await r.table("transactions")
+    .changes()
+    .run(connection);
+
+  const getTxAccountId = (change: Change<Transaction>) => {
+    if (isUpsert(change)) {
+      return change.new_val.accountId;
+    } else {
+      return change.old_val.accountId;
+    }
+  }
+
+  const calculateBalance = (balance: number, current: Transaction) => {
+    balance += current.debit || 0;
+    balance -= current.credit || 0;
+  
+    return balance;
+  }
+
+  const lastPaymentDate = (transactions: Transaction[]) => {
+    let lastTx = transactions
+      .filter(tx => tx.type === "payment")
+      .last();
+
+    if (lastTx) {
+      return lastTx.date;
+    }
+  
+    return null;
+  }
+
+  txChangeFeed.each(async (err, change: Change<Transaction>) => {
+    let accountId = getTxAccountId(change);
+
+    let txSeq = await r.table("transactions")
+      .filter({ accountId })
+      .orderBy("date")
+      .run(connection);
+    
+    let transactions: Transaction[] = await txSeq.toArray();
+
+    let balance = transactions.reduce(calculateBalance, 0);
+    let lastPayment = lastPaymentDate(transactions);
+
+    await r.table("students")
+      .get(accountId)
+      .update({ account: { balance, lastPayment } })
+      .run(connection);
+  });
+});
 
 onConnect(async (err, connection) => {
   console.log("studentChangeFeed");
@@ -318,11 +389,31 @@ interface Student {
   }
 }
 
+type TransactionType =
+  "class" |
+  "private" |
+  "registration" |
+  "exam" |
+  "festival" |
+  "costume" |
+  "interest" |
+  "payment";
+
+interface Transaction {
+  date: Date;
+  details: string;
+  type?: TransactionType;
+  debit?: number;
+  credit?: number;
+  accountId: string;
+}
+
 type StudentKeys = keyof Student;
 
 const isInsert = <T>(change: Change<T>): boolean => change.new_val && change.old_val === null;
-const isDelete = <T>(change: Change<T>): boolean => change.old_val && change.new_val === null;
 const isUpdate = <T>(change: Change<T>): boolean => change.old_val !== null && change.new_val !== null;
+const isUpsert = <T>(change: Change<T>): boolean => isInsert(change) || isUpdate(change);
+const isDelete = <T>(change: Change<T>): boolean => change.old_val && change.new_val === null;
 
 const hasValueChanged = <T, K extends keyof T>(change: Change<T>, key: K) => {
   if (isUpdate(change)) {
