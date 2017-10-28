@@ -24,6 +24,8 @@ import * as auth from "./auth";
 import { authRouter } from "./auth.route";
 import { userRouter } from "./user.route";
 
+import "./transaction.changefeed";
+
 export class Server {
 
   public app: express.Application;

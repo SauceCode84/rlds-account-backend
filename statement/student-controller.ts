@@ -7,6 +7,7 @@ import "../array.last";
 import { onConnect, RethinkRequest } from "./data-access";
 import { StatusError } from "./status.error";
 import { PageOptions, PagedResults, paginateResults, validPageOptions, extractPagination } from "./pagination";
+import { Change } from "./changefeed";
 
 const statusErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (err instanceof StatusError) {
@@ -302,59 +303,7 @@ studentRouter
   
 studentRouter.use(statusErrorHandler);
 
-onConnect(async (err, connection) => {
-  console.log("transactionChangeFeed");
 
-  let txChangeFeed = await r.table("transactions")
-    .changes()
-    .run(connection);
-
-  const getTxAccountId = (change: Change<Transaction>) => {
-    if (isUpsert(change)) {
-      return change.new_val.accountId;
-    } else {
-      return change.old_val.accountId;
-    }
-  }
-
-  const calculateBalance = (balance: number, current: Transaction) => {
-    balance += current.debit || 0;
-    balance -= current.credit || 0;
-  
-    return balance;
-  }
-
-  const lastPaymentDate = (transactions: Transaction[]) => {
-    let lastTx = transactions
-      .filter(tx => tx.type === "payment")
-      .last();
-
-    if (lastTx) {
-      return lastTx.date;
-    }
-  
-    return null;
-  }
-
-  txChangeFeed.each(async (err, change: Change<Transaction>) => {
-    let accountId = getTxAccountId(change);
-
-    let txSeq = await r.table("transactions")
-      .filter({ accountId })
-      .orderBy("date")
-      .run(connection);
-    
-    let transactions: Transaction[] = await txSeq.toArray();
-
-    let balance = transactions.reduce(calculateBalance, 0);
-    let lastPayment = lastPaymentDate(transactions);
-
-    await r.table("students")
-      .get(accountId)
-      .update({ account: { balance, lastPayment } })
-      .run(connection);
-  });
-});
 
 onConnect(async (err, connection) => {
   console.log("studentChangeFeed");
@@ -375,10 +324,6 @@ onConnect(async (err, connection) => {
   });
 });
 
-interface Change<T> {
-  old_val?: T;
-  new_val?: T;
-}
 
 interface Student {
   firstName: string;
@@ -389,59 +334,8 @@ interface Student {
   }
 }
 
-type TransactionType =
-  "class" |
-  "private" |
-  "registration" |
-  "exam" |
-  "festival" |
-  "costume" |
-  "interest" |
-  "payment";
-
-interface Transaction {
-  date: Date;
-  details: string;
-  type?: TransactionType;
-  debit?: number;
-  credit?: number;
-  accountId: string;
-}
-
 type StudentKeys = keyof Student;
 
-const isInsert = <T>(change: Change<T>): boolean => change.new_val && change.old_val === null;
-const isUpdate = <T>(change: Change<T>): boolean => change.old_val !== null && change.new_val !== null;
-const isUpsert = <T>(change: Change<T>): boolean => isInsert(change) || isUpdate(change);
-const isDelete = <T>(change: Change<T>): boolean => change.old_val && change.new_val === null;
-
-const hasValueChanged = <T, K extends keyof T>(change: Change<T>, key: K) => {
-  if (isUpdate(change)) {
-    return change.old_val[key] === change.new_val[key];
-  }
-
-  return true;  
-}
-
-type ChangeSet<T, K extends keyof T> = { [key: string]: T[K] };
-
-const getNewValues = <T, K extends keyof T>(change: Change<T>, ...keys: K[]): ChangeSet<T, K> => {
-  let changeSet: ChangeSet<T, K> = {};
-
-  keys = keys || (Object.keys(change) as K[]);
-
-  keys.forEach(key => {
-    let newValue = change.new_val;
-
-    if (!newValue || !newValue[key]) {
-      return;
-    }
-
-    changeSet[key] = change.new_val[key];
-  });
-
-  return changeSet;
-};
 
 const checkNested = (obj: Object, ...args: string[]): boolean => {
   for (let i = 0; i < args.length; i++) {
