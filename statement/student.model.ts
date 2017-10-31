@@ -1,7 +1,29 @@
 
 import { IStatementModel } from "./statement.model";
 
-export enum Grade {
+export interface Grade {
+  id: string;
+  name: string;
+  sortOrder: number;
+}
+
+export interface StudentAccount {
+  balance: number;
+  lastPayment?: Date;
+}
+
+export interface Student {
+  id: string;
+  firstName: string;
+  lastName: string;
+  grade: Grade;
+  account: StudentAccount;
+  paymentOption: PaymentOption;
+}
+
+export type StudentKeys = keyof Student;
+
+/*export enum Grade {
   PrePrimary,
   Primary,
   Grade1,
@@ -11,7 +33,7 @@ export enum Grade {
   Grade5,
   Intermediate,
   Advanced1
-}
+}*/
 
 export enum PaymentOption {
   Monthly = "monthly",

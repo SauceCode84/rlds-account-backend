@@ -20,7 +20,7 @@
 declare module "rethinkdb" {
     
     import { ConnectionOptions as TLSConnectionOptions } from "tls";
-
+    
     /**
      * Create a new connection to the database server.
      *
@@ -38,6 +38,9 @@ declare module "rethinkdb" {
     export function db(name: string): Db;
     export function table(name: string, options?: { useOutdated: boolean }): Table;
 
+    export function tableCreate(name: string, options?: TableOptions): Operation<CreateResult>;
+    export function tableList(): Operation<string[]>;
+
     export function asc(property: string): Sort;
     export function desc(property: string): Sort;
 
@@ -48,6 +51,8 @@ declare module "rethinkdb" {
     export const row: Row;
     export function expr(stuff: any): Expression<any>;
 
+    export function args(args: string[] | Expression<any>): string[];
+    
     export function now(): Expression<Time>;
 
     // Control Structures
@@ -160,7 +165,7 @@ declare module "rethinkdb" {
     }
 
     interface TableOptions {
-        primary_key?: string; // 'id'
+        primaryKey?: string; // 'id'
         durability?: string; // 'soft'
         cache_size?: number;
         datacenter?: string;
@@ -216,6 +221,11 @@ declare module "rethinkdb" {
         includeTypes: boolean;
     }
 
+    interface Change<T> {
+      old_val?: T;
+      new_val?: T;
+    }
+
     interface HasFields<T> {
         /**
          * Test if an object has one or more fields. An object has a field if it has that key and the key has a non-null value.
@@ -245,10 +255,21 @@ declare module "rethinkdb" {
         insert(obj: any[], options?: InsertOptions): Operation<WriteResult>;
         insert(obj: any, options?: InsertOptions): Operation<WriteResult>;
 
-        get<TObjectType extends object>(key: string): Operation<TObjectType | null>;
-        getAll(key: string, index?: Index): Sequence; // without index defaults to primary key
+        get<TObjectType extends object>(key: string): SingleRowSequence<TObjectType | null>;
+        
+        getAll(key: string | Expression<string>, index?: Index): Sequence; // without index defaults to primary key
+        getAll(keys: string[]): Sequence;
         getAll(...keys: string[]): Sequence;
+        
         wait(WaitOptions?: WaitOptions): WaitResult;
+    }
+
+    interface SingleRowSequence<T extends object> extends Operation<T>, Writeable {
+      changes(opts?: ChangesOptions): Sequence;
+
+      merge<U extends object>(...objOrQuery: (U | ExpressionFunction<T>)[]): Expression<T & U>;
+      
+      without(...props: string[]): SingleRowSequence<T>;
     }
 
     interface Sequence extends Operation<Cursor>, Writeable {
@@ -262,7 +283,7 @@ declare module "rethinkdb" {
          * Turn a query into a changefeed, an infinite stream of objects representing
          * changes to the query’s results as they occur. A changefeed may return changes
          * to a table or an individual document (a “point” changefeed). Commands such as
-         * filter or `map` may be used before the changes command to transform or filter
+         * `filter` or `map` may be used before the changes command to transform or filter
          * the output, and many commands that operate on sequences can be chained after
          * `changes`.
          *
@@ -296,19 +317,36 @@ declare module "rethinkdb" {
         // Aggregate
         reduce(r: ReduceFunction<any>, base?: any): Expression<any>;
         count(): Expression<number>;
+        
+        sum(): Expression<number>;
+        sum(field: string): Expression<number>;
+        
         distinct(): Sequence;
         groupedMapReduce(group: ExpressionFunction<any>, map: ExpressionFunction<any>, reduce: ReduceFunction<any>, base?: any): Sequence;
         groupBy(...aggregators: Aggregator[]): Expression<Object>; // TODO: reduction object
+        group<T>(key: keyof T): GroupedExpression<T[keyof T], T[]>;
         contains(prop: string): Expression<boolean>;
 
         // Manipulation
         pluck(...props: string[]): Sequence;
         without(...props: string[]): Sequence;
+
+        // Control
+        coerceTo(type: CoerceType): Expression<any[]>;
     }
 
-    interface ExpressionFunction<U> {
-        (doc: Expression<any>): Expression<U>;
+    interface Grouping<TGroup, TReduction> {
+      group: TGroup;
+      reduction: TReduction;
     }
+
+    interface GroupedExpression<TGroup, TReduction> extends Expression<Grouping<TGroup, TReduction>> {
+      count(): GroupedExpression<TGroup, number>;
+    }
+
+    type CoerceType = "array" | "string" | "number" | "object" | "binary";
+    
+    type ExpressionFunction<U> = <T extends any>(doc: Expression<T>) => Expression<U>;
 
     interface JoinFunction<U> {
         (left: Expression<any>, right: Expression<any>): Expression<U>;
@@ -366,7 +404,9 @@ declare module "rethinkdb" {
 
     interface Expression<T> extends Writeable, Operation<T>, HasFields<Expression<number>> {
         (prop: string): Expression<any>;
-        merge(query: Expression<Object>): Expression<Object>;
+        <K extends keyof T>(prop: K): Expression<T[K]>;
+
+        merge(query: Object | Expression<Object>): Expression<Object>;
         append(prop: string): Expression<Object>;
         contains(prop: string): Expression<boolean>;
 
@@ -405,9 +445,13 @@ declare module "rethinkdb" {
          */
         sub(date: Time): Expression<number>;
 
+        sub(expr: Expression<number>): Expression<number>;
+
         mul(n: number): Expression<number>;
         div(n: number): Expression<number>;
         mod(n: number): Expression<number>;
+
+        downcase(): Expression<string>;
 
         default(value: T): Expression<T>;
     }
@@ -520,7 +564,7 @@ declare module "rethinkdb" {
     }
 
     interface ReqlError extends Error { }
-
+    
     /**
      * An error has occurred within the driver. This may be a driver bug, or it may
      * be an unfulfillable command, such as an unserializable query.
@@ -528,4 +572,15 @@ declare module "rethinkdb" {
      * See https://www.rethinkdb.com/docs/error-types/
      */
     interface ReqlDriverError extends ReqlError { }
+
+    module Error {
+      abstract class ReqlError implements Error {
+        name: string;
+        message: string;
+        msg: string;
+        stack?: string;
+      }
+
+      class ReqlNonExistenceError extends ReqlError { }
+    }
 }

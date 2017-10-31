@@ -7,7 +7,7 @@ import "../array.last";
 import { onConnect, RethinkRequest } from "./data-access";
 import { StatusError } from "./status.error";
 import { PageOptions, PagedResults, paginateResults, validPageOptions, extractPagination } from "./pagination";
-import { Change } from "./changefeed";
+import { Student } from "./student.model";
 
 const statusErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (err instanceof StatusError) {
@@ -22,7 +22,7 @@ const studentCount = (connection: any): Promise<number> =>
 
 const findStudent = (id: string, connection: any): Promise<any> => {
   return r.table("students")
-    .get(id)
+    .get<Student>(id)
     .without("contacts")
     .run(connection);
 }
@@ -193,8 +193,13 @@ const getStudentContacts = async (req: RethinkRequest, res: Response, next: Next
   let { id } = req.params;
   
   try {
+    let x = await r.table("students")
+      .group<Student>("lastName")
+      
+      .run(req.rdb);
+    
     let contacts = await r.table("students")
-      .get(id)
+      .get<Student>(id)
       .merge(student => {
         return {
           contacts: r.table("contacts")
@@ -309,7 +314,7 @@ onConnect(async (err, connection) => {
   console.log("studentChangeFeed");
   let studentChangeFeed = await r.table("students").changes().run(connection);
 
-  studentChangeFeed.each((err, change: Change<Student>) => {
+  studentChangeFeed.each((err, change: r.Change<Student>) => {
     if (err) {
       console.error(err);
       return;
@@ -325,16 +330,7 @@ onConnect(async (err, connection) => {
 });
 
 
-interface Student {
-  firstName: string;
-  lastName: string;
-  account: {
-    balance: number;
-    lastPayment?: Date;
-  }
-}
 
-type StudentKeys = keyof Student;
 
 
 const checkNested = (obj: Object, ...args: string[]): boolean => {

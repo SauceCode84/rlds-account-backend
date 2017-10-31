@@ -11,7 +11,7 @@ export const getUsers = async (): Promise<User[]> => {
       .without("password")
       .run(connection);
 
-    let users: User[] = userSeq.toArray();
+    let users: User[] = await userSeq.toArray<User>();
 
     return users;
   } catch (err) {
@@ -28,13 +28,13 @@ export const getUsers = async (): Promise<User[]> => {
 export const getUserById = async (id: string, includePassword = false): Promise<User> => {
   try {
     let connection = await getConnection();
-    let userSeq = await r.table("users").get(id)
+    let userSeq = await r.table("users").get<User>(id)
 
     if (!includePassword) {
       userSeq = userSeq.without("password");
     }
 
-    let user: User = userSeq.run(connection);
+    let user: User = await userSeq.run(connection);
 
     return user;
   } catch (err) {
@@ -71,7 +71,7 @@ export const validateUser = async (email: string, password: string): Promise<Use
   try {
     let connection = await getConnection();
 
-    let [ user ]: [ User ] = await r.table("users")
+    let [ user ] = <User[]> await r.table("users")
       .filter({ email })
       .limit(1)
       .coerceTo("array")

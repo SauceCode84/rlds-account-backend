@@ -11,10 +11,10 @@ const connectionConfig = {
 };
 
 export interface RethinkRequest extends Request {
-  rdb: any;
+  rdb: r.Connection;
 };
 
-type OnConnectCallback = (err, connection?) => void;
+type OnConnectCallback = (err: Error, connection?: r.Connection) => void;
 
 export const onConnect = (callback: OnConnectCallback) => {
   r.connect(connectionConfig)
@@ -22,7 +22,7 @@ export const onConnect = (callback: OnConnectCallback) => {
    .catch(err => callback(err));
 }
 
-const createIndex = (tableName: string, indices: string[], connection: any) =>
+const createIndex = (tableName: string, indices: string[], connection: r.Connection) =>
   async (index: IndexConfig) => {
     let indexName = index.name;
   
@@ -48,7 +48,7 @@ const loadJSONAsync = <T extends any>(filename: string) => {
   });
 }
 
-const seedFromFile = async (filename: string, tableName: string, connection: any) => {
+const seedFromFile = async (filename: string, tableName: string, connection: r.Connection) => {
   let data = await loadJSONAsync(filename);
 
   let result = await r.table(tableName)
@@ -106,7 +106,7 @@ onConnect(async (err, connection) => {
   });  
 });
 
-export const getConnection = (): Promise<{}> => {
+export const getConnection = (): Promise<r.Connection> => {
   return r.connect(connectionConfig);
 }
 

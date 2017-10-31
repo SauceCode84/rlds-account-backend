@@ -6,23 +6,19 @@ import * as logger from "morgan";
 
 import * as dataAccess from "./data-access";
 
-//import { StudentController } from "./student-controller";
-//import { StatementController } from "./statement-controller";
 import { PATH_METADATA } from "./constants";
 import { RoutePathScanner } from "./route-path-scanner";
 import { isNil, isFunction } from "./util";
 
-import { IStudentModel, Grade, PaymentOption } from "./student.model";
-//import { Student } from "./student.schema";
-import { IAccountModel, IAccountLineModel, AccountType } from "./account.model";
-//import { Account } from "./account.schema";
-
 import { routerMethodFactory } from "./routerMethodFactory";
+
 import { studentRouter } from "./student-controller";
 import { gradesRouter } from "./grades.route";
 import * as auth from "./auth";
+import { feesRouter } from "./fee.routes";
 import { authRouter } from "./auth.route";
 import { userRouter } from "./user.route";
+import { billingRunRouter } from "./billingrun.routes";
 
 import "./transaction.changefeed";
 
@@ -96,8 +92,10 @@ export class Server {
 
     this.app.use("/", authRouter);
     this.app.use("/", userRouter);
-    this.app.use("/students", studentRouter);
     this.app.use("/grades", gradesRouter);
+    this.app.use("/fees", feesRouter);
+    this.app.use("/students", studentRouter);
+    this.app.use("/billingRun", billingRunRouter);
 
     //this.registerController(StudentController);
     //this.registerController(StatementController);

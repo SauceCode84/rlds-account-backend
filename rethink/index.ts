@@ -195,7 +195,7 @@ const getNewValues = <T, K extends keyof T>(change: Change<T>, ...keys: K[]): Ch
 
 
 const getAccount = (accountId: string) => {
-  return r.table("accounts").get(accountId);
+  return r.table("accounts").get<Account>(accountId);
 }
 
 const calculateBalance = (accountId: string, conn): Promise<number> => {
@@ -206,7 +206,7 @@ const calculateBalance = (accountId: string, conn): Promise<number> => {
     .run(conn);
 }
 
-const updateAccountBalance = (accountId: string, newBalance: number, conn): Promise<void> => {
+const updateAccountBalance = (accountId: string, newBalance: number, conn) => {
   return getAccount(accountId)
     .update({ balance: newBalance })
     .run(conn);

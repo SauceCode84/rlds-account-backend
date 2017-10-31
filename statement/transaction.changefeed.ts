@@ -1,7 +1,7 @@
 import * as r from "rethinkdb"; 
 import { onConnect } from "./data-access";
 import { Transaction } from "./transaction.models";
-import { Change, isUpsert } from "./changefeed";
+import { isUpsert } from "./changefeed";
 
 const calculateBalance = (balance: number, current: Transaction) => {
   balance += current.debit || 0;
@@ -22,7 +22,7 @@ const lastPaymentDate = (transactions: Transaction[]) => {
   return null;
 }
 
-const getTxAccountIdFromChange = (change: Change<Transaction>) => {
+const getTxAccountIdFromChange = (change: r.Change<Transaction>) => {
   if (isUpsert(change)) {
     return change.new_val.accountId;
   } else {
@@ -35,9 +35,9 @@ onConnect(async (err, connection) => {
 
   const getTransactionsForAccount = async (accountId: string) => {
     let txSeq = await r.table("transactions")
-    .filter({ accountId })
-    .orderBy("date")
-    .run(connection);
+      .filter({ accountId })
+      .orderBy("date")
+      .run(connection);
   
     return await txSeq.toArray();
   }
@@ -53,7 +53,7 @@ onConnect(async (err, connection) => {
     .changes()
     .run(connection);
 
-  txChangeFeed.each(async (err, change: Change<Transaction>) => {
+  txChangeFeed.each(async (err, change: r.Change<Transaction>) => {
     let accountId = getTxAccountIdFromChange(change);
     let transactions: Transaction[] = await getTransactionsForAccount(accountId);
 
