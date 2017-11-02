@@ -77,72 +77,64 @@ export class UserService implements OnResponseFinish {
       return user;
   }
 
-  async finish(): Promise<void> {
-    await this.connection.close();
-    console.log("UserService.finish()", "connection closed...");
+  /**
+   * Hashes the password, using the bcrypt hasher
+   * @param password The password to hash
+   */
+  private static hashPassword(password: string) {
+    return bcrypt.hash(password, 8);
   }
-  
-}
 
-const hashPassword = (password: string) => bcrypt.hash(password, 8);
-
-/**
- * Creates a user with the given email and password, and returns the new user's id
- * @param email The new user's email
- * @param password The new user's password
- * @returns The new user's id
- */
-export const createUser = async (email: string, password: string): Promise<string> => {
-  try {
-    let hashedPassword = await hashPassword(password);
+  /**
+   * Creates a user with the given email and password, and returns the new user's id
+   * @param email The new user's email
+   * @param password The new user's password
+   * @returns The new user's id
+   */
+  async createUser(email: string, password: string): Promise<string> {
+    let hashedPassword = await UserService.hashPassword(password);
     let newUser = {
       email,
       password: hashedPassword
     };
 
-    let connection = await getConnection();
     let result = await r.table("users")
       .insert(newUser)
-      .run(connection);
+      .run(this.connection);
   
     let [ id ] = result.generated_keys;
 
     return id;
-  } catch(err) {
-    console.error(err);
-    throw err;
   }
-}
 
-/**
- * Updates the user with id with the password provided
- * @param id The user's id
- * @param password The user's new password
- */
-export const changePassword = async (id: string, password: string) => {
-  let hashedPassword = await hashPassword(password);
-  let connection = await getConnection();
+  /**
+   * Updates the user with id with the password provided
+   * @param id The user's id
+   * @param password The user's new password
+   */
+  async changePassword(id: string, password: string) {
+    let hashedPassword = await UserService.hashPassword(password);
 
-  let result = await r.table("users")
-    .update({ password: hashedPassword })
-    .run(connection);
-}
+    await r.table("users")
+      .update({ password: hashedPassword })
+      .run(this.connection);
+  }
 
-/**
- * Update the specified user with the given changes
- * @param id The user's id
- * @param changes The changes to update the user with
- */
-export const updateUser = async (id: string, changes: { name?: string, roles?: string[] }): Promise<void> => {
-  try {
-    let connection = await getConnection();
-
+  /**
+   * Update the specified user with the given changes
+   * @param id The user's id
+   * @param changes The changes to update the user with
+   */
+  async updateUser(id: string, changes: { name?: string, roles?: string[] }): Promise<void> {
     await r.table("users")
       .get(id)
       .update(changes)
-      .run(connection);
-  } catch (err) {
-    console.error(err);
-    throw err;
+      .run(this.connection);
   }
+
+  async finish(): Promise<void> {
+    await this.connection.close();
+    console.log("UserService.finish()", "connection closed...");
+  }
+  
 }

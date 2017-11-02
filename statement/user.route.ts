@@ -2,7 +2,7 @@ import { Request, Response, Router, NextFunction } from "express";
 
 import * as r from "rethinkdb";
 import * as auth from "./auth";
-import { createUser, changePassword, updateUser, UserService } from "./user.service";
+import { UserService } from "./user.service";
 import { ServiceRequest } from "./service-request";
 import { getConnection } from "./data-access";
 import { responseFinishHandler } from "./response-finish-handler";
@@ -55,30 +55,30 @@ userRouter
 
     let { name, roles } = req.body;
 
-    await updateUser(id, { name, roles });
+    await req.service.updateUser(id, { name, roles });
     res.sendStatus(200);
   });
 
 userRouter
-  .post("/users/changePassword", auth.authenticate(), async (req, res) => {
+  .post("/users/changePassword", auth.authenticate(), async (req: UserServiceRequest & AuthRequest, res: Response) => {
     let { password } = req.body;
 
     if (!password || typeof password !== "string" || password.length == 0) {
       return res.sendStatus(400);
     }
 
-    //let { id } = await getUserById(req.user.id);
+    let { user } = req.user as AuthRequest;
 
-    await changePassword(req.user.id, password);
+    await req.service.changePassword(user.id, password);
 
     res.sendStatus(204);
   });
 
 userRouter
-  .post("/register", async (req, res) => {
+  .post("/register", async (req: UserServiceRequest, res: Response) => {
     try {
       let { email, password } = req.body;
-      let id = await createUser(email, password);
+      let id = await req.service.createUser(email, password);
 
       res.send({ id });
     } catch (err) {
