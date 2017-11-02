@@ -59,7 +59,7 @@ export class StudentService implements OnResponseFinish {
         return {
           contacts: r.table("contacts")
             .getAll(r.args(student("contacts").default([])))
-            .coerceTo<Contact>("array")
+            .coerceTo("array")
         };
       })("contacts")
       .run(this.connection);

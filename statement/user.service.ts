@@ -61,7 +61,7 @@ export class UserService implements OnResponseFinish {
     let [ user ] = <User[]> await r.table("users")
       .filter({ email })
       .limit(1)
-      .coerceTo<User>("array")
+      .coerceTo("array")
       .run(this.connection);
       
       if (!user) {
@@ -83,10 +83,6 @@ export class UserService implements OnResponseFinish {
   }
   
 }
-
-
-
-
 
 const hashPassword = (password: string) => bcrypt.hash(password, 8);
 
