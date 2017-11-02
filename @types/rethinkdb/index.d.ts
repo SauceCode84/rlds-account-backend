@@ -344,17 +344,15 @@ declare module "rethinkdb" {
       count(): GroupedExpression<TGroup, number>;
     }
 
-    type CoerceType<T> = keyof CoerceTypeMap<T>;
+    //type CoerceType<T> = keyof CoerceTypeMap<T>;
 
     type CoerceTypeMap<T> = {
-      "array": Expression<any[]>,
+      "array": Expression<T[]>,
       "string": Expression<string>,
       "number": Expression<number>,
       "object": Expression<any>,
       "binary": Expression<any>
     }
-
-    
     
     type ExpressionFunction<U> = <T extends any>(doc: Expression<T>) => Expression<U>;
 

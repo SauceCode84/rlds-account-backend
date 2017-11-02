@@ -39,6 +39,44 @@ export class UserService implements OnResponseFinish {
     return user;
   }
 
+  /**
+   * Returns whether or not the user exists, given the user id
+   * @param id The user's id
+   */
+  async userExists(id: string): Promise<boolean> {
+    let userCount: number = await r.table("users")
+      .filter({ id })
+      .count()
+      .run(this.connection);
+
+    return userCount > 0;
+  }
+
+  /**
+   * Validates the user, based on the email and password combination, and returns the User object on success
+   * @param email The user's email to validate
+   * @param password The user's password to validate
+   */
+  async validateUser(email: string, password: string): Promise<User> {
+    let [ user ] = <User[]> await r.table("users")
+      .filter({ email })
+      .limit(1)
+      .coerceTo<User>("array")
+      .run(this.connection);
+      
+      if (!user) {
+        throw new Error("User email not found");
+      }
+      
+      let passwordsMatch = await bcrypt.compare(password, user.password);
+
+      if (!passwordsMatch) {
+        throw new Error("Passwords don't match");
+      }
+      
+      return user;
+  }
+
   async finish(): Promise<void> {
     await this.connection.close();
     console.log("UserService.finish()", "connection closed...");
@@ -46,56 +84,9 @@ export class UserService implements OnResponseFinish {
   
 }
 
-/**
- * Returns whether or not the user exists, using the specified user id
- * @param id The user's id
- */
-export const userExists = async (id: string): Promise<boolean> => {
-  try {
-    let connection = await getConnection();
-    let userCount: number = await r.table("users")
-      .filter({ id })
-      .count()
-      .run(connection);
 
-    return userCount > 0;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-}
 
-/**
- * Validates the user, based on the email and password combination, and returns the User object on success
- * @param email The user's email to validate
- * @param password The user's password to validate
- */
-export const validateUser = async (email: string, password: string): Promise<User> => {
-  try {
-    let connection = await getConnection();
 
-    let [ user ] = <User[]> await r.table("users")
-      .filter({ email })
-      .limit(1)
-      .coerceTo("array")
-      .run(connection);
-    
-    if (!user) {
-      throw new Error("User email not found");
-    }
-    
-    let passwordsMatch = await bcrypt.compare(password, user.password);
-
-    if (!passwordsMatch) {
-      throw new Error("Passwords don't match");
-    }
-    
-    return user;
-  } catch(err) {
-    console.error(err);
-    throw err;
-  }
-}
 
 const hashPassword = (password: string) => bcrypt.hash(password, 8);
 

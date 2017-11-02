@@ -2,7 +2,7 @@ import { Request, Response, Router, NextFunction } from "express";
 
 import * as r from "rethinkdb";
 import * as auth from "./auth";
-import { createUser, changePassword, updateUser, userExists, UserService } from "./user.service";
+import { createUser, changePassword, updateUser, UserService } from "./user.service";
 import { ServiceRequest } from "./service-request";
 import { getConnection } from "./data-access";
 import { responseFinishHandler } from "./response-finish-handler";
@@ -45,11 +45,11 @@ userRouter
   });
 
 userRouter
-  .put("/users/:id", auth.authenticate(), async (req, res) => {
+  .put("/users/:id", auth.authenticate(), async (req: UserServiceRequest, res: Response) => {
     let { id } = req.params;
-    let userValid = await userExists(id);
+    let userExists = await req.service.userExists(id);
 
-    if (!userValid) {
+    if (!userExists) {
       return res.sendStatus(400);
     }
 

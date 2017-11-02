@@ -2,8 +2,9 @@ import { Router } from "express";
 import * as jwt from "jsonwebtoken";
 
 import { authConfig } from "./config";
-import { validateUser } from "./user.service";
+import { UserService } from "./user.service";
 import { User } from "./user.model";
+import { getConnection } from "./data-access";
 
 export const authRouter = Router();
 
@@ -18,7 +19,8 @@ authRouter
     let user: User;
 
     try {
-      user = await validateUser(email, password);
+      let service = new UserService(await getConnection());
+      user = await service.validateUser(email, password);
     } catch (err) {
       return res.status(401).send(err.message);
     }
