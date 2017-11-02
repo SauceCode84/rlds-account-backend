@@ -35,8 +35,8 @@ userRouter.use(async (req: UserServiceRequest, res: Response, next: NextFunction
 
 userRouter
   .get("/me", auth.authenticate(), async (req: AuthRequest & UserServiceRequest, res) => {
-    let { user } = req;
-    res.json(await req.service.getUserById(req.user.id));
+    let { user } = req as AuthRequest;
+    res.json(await req.service.getUserById(user.id));
   });
 
 userRouter
