@@ -58,7 +58,7 @@ export class StudentService implements OnResponseFinish {
       .merge(student => {
         return {
           contacts: r.table("contacts")
-            .getAll(r.args(student("contacts")))
+            .getAll(r.args(student("contacts").default([])))
             .coerceTo<Contact>("array")
         };
       })("contacts")

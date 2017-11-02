@@ -137,7 +137,7 @@ studentRouter
   .use(serviceRequestHandler);
 
 studentRouter
-  .use("/:id*", validateStudentExists);
+  .use("/:id/*", validateStudentExists);
 
 studentRouter
   .get("/", getPagedStudents, getStudents)
