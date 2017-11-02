@@ -45,3 +45,15 @@ export const paginateResults = async <TModel>(queryFn: QueryFunction<TModel>, co
     results
   };  
 }
+
+export const paginationSliceParams = (options: PageOptions): { start: number, end: number } => {
+  let { page, pageSize } = options;
+  
+  page = parseInt(page) || 1;
+  pageSize = parseInt(pageSize) || 10;
+  
+  let start: number = ((page - 1) * pageSize);
+  let end: number = start + pageSize;
+
+  return { start, end };
+}

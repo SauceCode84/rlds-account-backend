@@ -4,10 +4,14 @@ import * as r from "rethinkdb";
 
 import "../array.last";
 
-import { onConnect, RethinkRequest } from "./data-access";
+import { onConnect, RethinkRequest, getConnection } from "./data-access";
 import { StatusError } from "./status.error";
-import { PageOptions, PagedResults, paginateResults, validPageOptions, extractPagination } from "./pagination";
+import { PageOptions, PagedResults, paginateResults, validPageOptions, extractPagination, paginationSliceParams } from "./pagination";
 import { Student } from "./student.model";
+
+import { StudentService } from "./student.service";
+import { ServiceRequest, isServiceRequest } from "./service-request";
+import { responseFinishHandler } from "./response-finish-handler";
 
 const statusErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (err instanceof StatusError) {
@@ -17,282 +21,123 @@ const statusErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   next(err);
 }
 
-const studentCount = (connection: any): Promise<number> =>
-  r.table("students").count().run(connection);
-
-const findStudent = (id: string, connection: any): Promise<any> => {
-  return r.table("students")
-    .get<Student>(id)
-    .without("contacts")
-    .run(connection);
-}
-
-const studentExists = async (id: string, connection: any) => {
-  let student = await r.table("students")
-    .get(id)
-    .run(connection);
-
-  return student !== undefined && student !== null;
-}
-
-const paginationSliceParams = (options: PageOptions) => {
-  let { page, pageSize } = options;
-  
-  page = parseInt(page) || 1;
-  pageSize = parseInt(pageSize) || 10;
-  
-  let pageStart: number = ((page - 1) * pageSize);
-  let pageEnd: number = pageStart + pageSize;
-
-  return { pageStart, pageEnd };
-}
-
-const pagedStudents = async (connection: any, { pageStart, pageEnd }) => {
-  let cursor = await r.table("students")
-    .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
-    .slice(pageStart, pageEnd)
-    .run(connection);
-
-  return await cursor.toArray();
-}
-
-const getPagedStudents = async (req: RethinkRequest, res: Response, next: NextFunction) => {
+const getPagedStudents = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
   let pageOptions = extractPagination(req);
 
   if (!validPageOptions(pageOptions)) {
     return next();
   }
 
-  try {
-    let connection = req.rdb;
-    let result = await paginateResults(
-      () => pagedStudents(connection, paginationSliceParams(pageOptions)),
-      () => studentCount(connection),
-      pageOptions);
-    
-    res.json(result);
-  } catch (err) {
-    next(err);
-  }
-}
-
-const getStudents = async (req: RethinkRequest, res: Response, next: NextFunction) => {
-  try {
-    let cursor = await r.table("students")
-      .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
-      .run(req.rdb);
-    let students = await cursor.toArray();
-
-    res.json(students);
-  } catch (err) {
-    next(err);
-  }
-}
-
-const getStudentNames = async (req: RethinkRequest, res: Response, next: NextFunction) => {
-  try {
-    let cursor = await r.table("students")
-      .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
-      .pluck("id", "firstName", "lastName", "grade")
-      .run(req.rdb);
-    let students = await cursor.toArray();
+  let { service } = req;
+  let result = await paginateResults(
+    () => service.pagedStudents(paginationSliceParams(pageOptions)),
+    () => service.studentCount(),
+    pageOptions);
   
-    res.json(students);
-  } catch (err) {
-    next(err);
-  }
+  res.json(result);
 }
 
-const getStudentById = async (req: RethinkRequest, res: Response, next: NextFunction) => {
-  let { id } = req.params;
+const getStudents = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
+  let students = await req.service.allStudents();
+
+  res.json(students);
+}
+
+const getStudentNames = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
+  let students = await req.service.allStudents("id", "firstName", "lastName", "grade");
   
-  try {
-    let student = await findStudent(id, req.rdb);
-
-    if (!student) {
-      return res.sendStatus(404);
-    }
-
-    res.json(student);
-  } catch (err) {
-    next(err);
-  }
+  res.json(students);
 }
 
-const defaultStudent = {
-  account: {
-    balance: 0,
-    lastPayment: null
-  },
-  contacts: []
-};
-
-const postNewStudent = async (req: RethinkRequest, res: Response, next: NextFunction) => {
-  try {
-    let newStudent = Object.assign(req.body, defaultStudent);
-    
-    let result = await r.table("students")
-      .insert(newStudent)
-      .run(req.rdb);
-
-    let [ id ] = result.generated_keys;
-    
-    res.status(201).json({ id });
-  } catch (err) {
-    if (err.name === "ValidationError") {
-      return res.status(400).send(err.errors);
-    }
-
-    next(err);
-  }
-}
-
-const putStudent = async (req: RethinkRequest, res: Response, next: NextFunction) => {
+const validateStudentExists = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
   let { id } = req.params;
-
-  try {
-    let student = await findStudent(id, req.rdb);
-
-    if (!student) {
-      return res.sendStatus(404);
-    }
-
-    let result = await r.table("students")
-      .get(id)
-      .update(req.body)
-      .run(req.rdb);
-
-    res.sendStatus(200);
-  } catch (err) {
-    next(err);
-  }
-}
-
-const deleteStudent = async (req: RethinkRequest, res: Response, next: NextFunction) => {
-  let { id } = req.params;
-
-  try {
-    let student = await findStudent(id, req.rdb);
-    
-    if (!student) {
-      return res.sendStatus(404);
-    }
-
-    await r.table("students")
-      .get(id)
-      .delete()
-      .run(req.rdb);
-
-    res.sendStatus(204);
-  } catch (err) {
-    next(err);
-  }
-}
-
-const getStudentContacts = async (req: RethinkRequest, res: Response, next: NextFunction) => {
-  let { id } = req.params;
+  let exists = await req.service.studentExists(id);
   
-  try {
-    let x = await r.table("students")
-      .group<Student>("lastName")
-      
-      .run(req.rdb);
-    
-    let contacts = await r.table("students")
-      .get<Student>(id)
-      .merge(student => {
-        return {
-          contacts: r.table("contacts")
-            .getAll(r.args(student("contacts")))
-            .coerceTo("array")
-        };
-      })("contacts")
-      .run(req.rdb);
-
-    res.json(contacts);
-  } catch (err) {
-    if (err instanceof r.Error.ReqlNonExistenceError) {
-      if ((err.msg as string).indexOf("`null`") >= 0) {
-        return res.sendStatus(404);
-      } else if (err.msg.startsWith("No attribute `contacts` in object")) {
-        return res.json([]);
-      }
-    }
-
-    next(err);
+  if (!exists) {
+    return res.sendStatus(404);
   }
+
+  next();
 }
 
-const postStudentContact = async (req: RethinkRequest, res: Response, next: NextFunction) => {
+const getStudentById = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
+  let { id } = req.params;
+  let student = await req.service.findStudent(id);
+
+  res.json(student);
+}
+
+const postNewStudent = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
+  let id = await req.service.insertStudent(req.body);
+    
+  res.status(201).json({ id });
+}
+
+const putStudent = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
   let { id } = req.params;
 
-  try {
-    let newContact = req.body;
+  await req.service.updateStudent(id, req.body);
 
-    let result = await r.table("contacts")
-      .insert(newContact)
-      .run(req.rdb);
+  res.sendStatus(200);
+}
 
-    let [ contactId ] = result.generated_keys;
+const deleteStudent = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
+  let { id } = req.params;
 
-    await r.table("students")
-      .get(id)
-      .update({ contacts: r.row("contacts").append(contactId) })
-      .run(req.rdb);
+  await req.service.deleteStudent(id);
+
+  res.sendStatus(204);
+}
+
+const getStudentContacts = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
+  let { id } = req.params;
+  let contacts = await req.service.studentContacts(id);
+
+  res.json(contacts);
+}
+
+const postStudentContact = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
+  let { id } = req.params;
+  let contactId = await req.service.insertStudentContact(id, req.body);
     
-    res.status(201).json(contactId);
-  } catch (err) {
-    next(err);
-  }
+  res.status(201).json(contactId);
 } 
 
-const deleteStudentContact = async (req: RethinkRequest, res: Response, next: NextFunction) => {
+const deleteStudentContact = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
   let { id, contactId } = req.params;
 
-  try {
-    await r.table("contacts")
-      .get(contactId)
-      .delete()
-      .run(req.rdb);
+  await req.service.deleteStudentContact(id, contactId);
 
-    await r.table("students")
-      .get(id)
-      .update(row => {
-        return {
-          contacts: row("contacts").filter(contact => contact.ne(contactId))
-        }
-      })
-      .run(req.rdb);
-
-    res.sendStatus(204);
-  } catch (err) {
-    next(err);
-  }
+  res.sendStatus(204);
 }
 
-const getStudentTransactions = async (req: RethinkRequest, res: Response, next: NextFunction) => {
+const getStudentTransactions = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
   let { id } = req.params;
+  let txs = await req.service.studentTransactions(id);
 
-  try {
-    let exists = await studentExists(id, req.rdb);
-    
-    if (!exists) {
-      return res.sendStatus(404);
-    }
-
-    let txs = await r.table("transactions")
-      .filter({ accountId: id })
-      .without("accountId")
-      .orderBy("date")
-      .run(req.rdb);
-
-    res.json(txs);
-  } catch (err) {
-    next(err);
-  }
+  res.json(txs);
 }
 
 export const studentRouter = Router();
+
+type StudentServiceRequest = ServiceRequest<StudentService>;
+
+const serviceRequestHandler = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
+  const connection: r.Connection = await getConnection();
+  const service: StudentService = new StudentService(connection);
+  
+  req.service = service;
+
+  res.on("finish", responseFinishHandler(req));
+
+  next();
+}
+
+studentRouter
+  .use(serviceRequestHandler);
+
+studentRouter
+  .use("/:id*", validateStudentExists);
 
 studentRouter
   .get("/", getPagedStudents, getStudents)

@@ -19,6 +19,11 @@ export interface Student {
   grade: Grade;
   account: StudentAccount;
   paymentOption: PaymentOption;
+  contacts: string[];
+}
+
+export interface Contact {
+
 }
 
 export type StudentKeys = keyof Student;
