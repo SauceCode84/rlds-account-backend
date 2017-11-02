@@ -332,7 +332,7 @@ declare module "rethinkdb" {
         without(...props: string[]): Sequence;
 
         // Control
-        coerceTo(type: CoerceType): Expression<any[]>;
+        coerceTo<T>(type: keyof CoerceTypeMap<T>): CoerceTypeMap<T>[keyof CoerceTypeMap<T>];
     }
 
     interface Grouping<TGroup, TReduction> {
@@ -344,7 +344,17 @@ declare module "rethinkdb" {
       count(): GroupedExpression<TGroup, number>;
     }
 
-    type CoerceType = "array" | "string" | "number" | "object" | "binary";
+    type CoerceType<T> = keyof CoerceTypeMap<T>;
+
+    type CoerceTypeMap<T> = {
+      "array": Expression<any[]>,
+      "string": Expression<string>,
+      "number": Expression<number>,
+      "object": Expression<any>,
+      "binary": Expression<any>
+    }
+
+    
     
     type ExpressionFunction<U> = <T extends any>(doc: Expression<T>) => Expression<U>;
 
