@@ -1,14 +1,21 @@
 import { Request, Response, Router } from "express";
 
 import * as r from "rethinkdb";
-import { RethinkRequest } from "./data-access";
+import { getConnection } from "./data-access";
 
-const getGrades = async (req: RethinkRequest, res: Response) => {
+interface Grade {
+  id: string;
+  name: string;
+  sortOrder: number;
+}
+
+const getGrades = async (req: Request, res: Response) => {
+  let connection: r.Connection = await getConnection();
   let result = await r.table("grades")
     .orderBy("sortOrder")
-    .run(req.rdb);
+    .run(connection);
   
-  let grades = await result.toArray();
+  let grades = await result.toArray<Grade>();
 
   res.json(grades);
 }
