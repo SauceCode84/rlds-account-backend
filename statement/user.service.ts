@@ -3,44 +3,47 @@ import * as bcrypt from "bcrypt";
 
 import { User } from "./user.model";
 import { getConnection } from "./data-access";
+import { OnResponseFinish } from "./on-response-finish";
 
-export const getUsers = async (): Promise<User[]> => {
-  try {
-    let connection = await getConnection();
+export class UserService implements OnResponseFinish {
+  
+  constructor(private connection: r.Connection) { }
+  
+  /**
+   * Returns all the users
+   */
+  async getUsers(): Promise<User[]> {
     let userSeq = await r.table("users")
       .without("password")
-      .run(connection);
-
+      .run(this.connection);
+    
     let users: User[] = await userSeq.toArray<User>();
-
+    
     return users;
-  } catch (err) {
-    console.error(err);
-    throw(err);
   }
-}
 
-/**
- * Returns the user for the given id, or returns null if the user is not found
- * @param id The user id to search for
- * @param includePassword Determines whether or not to include the password field
- */
-export const getUserById = async (id: string, includePassword = false): Promise<User> => {
-  try {
-    let connection = await getConnection();
+  /**
+   * Returns the user for the given id, or returns null if the user is not found
+   * @param id The user id to search for
+   * @param includePassword Determines whether or not to include the password field
+   */
+  async getUserById(id: string, includePassword = false): Promise<User> {
     let userSeq = await r.table("users").get<User>(id)
 
     if (!includePassword) {
       userSeq = userSeq.without("password");
     }
 
-    let user: User = await userSeq.run(connection);
+    let user: User = await userSeq.run(this.connection);
 
     return user;
-  } catch (err) {
-    console.error(err);
-    throw err;
   }
+
+  async finish(): Promise<void> {
+    await this.connection.close();
+    console.log("UserService.finish()", "connection closed...");
+  }
+  
 }
 
 /**

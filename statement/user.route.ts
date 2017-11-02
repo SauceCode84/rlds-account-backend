@@ -1,7 +1,11 @@
-import { Request, Router } from "express";
+import { Request, Response, Router, NextFunction } from "express";
 
+import * as r from "rethinkdb";
 import * as auth from "./auth";
-import { createUser, getUserById, changePassword, getUsers, updateUser, userExists } from "./user.service";
+import { createUser, changePassword, updateUser, userExists, UserService } from "./user.service";
+import { ServiceRequest } from "./service-request";
+import { getConnection } from "./data-access";
+import { responseFinishHandler } from "./response-finish-handler";
 
 export const userRouter = Router();
 
@@ -14,16 +18,30 @@ interface AuthRequest extends Request {
   user: AuthUser;
 }
 
+type UserServiceRequest = ServiceRequest<UserService>;
+
+type AuthUserServiceRequest = AuthRequest & UserServiceRequest;
+
+let req: AuthUserServiceRequest;
+
+userRouter.use(async (req: UserServiceRequest, res: Response, next: NextFunction) => {
+  const connection: r.Connection = await getConnection();
+  req.service = new UserService(await getConnection());
+
+  res.on("finish", responseFinishHandler(req));
+
+  next();
+});
 
 userRouter
-  .get("/me", auth.authenticate(), async (req: AuthRequest, res) => {
+  .get("/me", auth.authenticate(), async (req: AuthRequest & UserServiceRequest, res) => {
     let { user } = req;
-    res.json(await getUserById(req.user.id));
+    res.json(await req.service.getUserById(req.user.id));
   });
 
 userRouter
-  .get("/users", auth.authenticate(), async (req, res) => {
-    res.json(await getUsers());
+  .get("/users", auth.authenticate(), async (req: UserServiceRequest, res: Response) => {
+    res.json(await req.service.getUsers());
   });
 
 userRouter
@@ -49,9 +67,9 @@ userRouter
       return res.sendStatus(400);
     }
 
-    let { id } = await getUserById(req.user.id);
+    //let { id } = await getUserById(req.user.id);
 
-    await changePassword(id, password);
+    await changePassword(req.user.id, password);
 
     res.sendStatus(204);
   });

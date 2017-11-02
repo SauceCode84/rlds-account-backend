@@ -2,7 +2,8 @@ import * as passport from "passport";
 import { Strategy, ExtractJwt } from "passport-jwt";
 
 import { authConfig } from "./config";
-import { getUserById } from "./user.service";
+import { UserService } from "./user.service";
+import { getConnection } from "./data-access";
 
 const params = {
   secretOrKey: authConfig.jwtSecret,
@@ -13,8 +14,8 @@ class Auth {
 
   constructor() {
     const strategy = new Strategy(params, async (payload, done) => {
-      let user = await getUserById(payload.id);
-  
+      let user = await this.getUser(payload.id);
+
       if (user) {
         return done(null, { id: user.id, roles: user.roles });
       } else {
@@ -23,6 +24,16 @@ class Auth {
     });
 
     passport.use(strategy);
+  }
+
+  private async getUser(userId: string) {
+    let connection = await getConnection();
+    let service = new UserService(connection);
+    let user = await service.getUserById(userId);
+
+    await connection.close();
+
+    return user;
   }
 
   public initialize() {
