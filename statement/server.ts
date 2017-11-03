@@ -21,6 +21,7 @@ import { userRouter } from "./user.route";
 import { billingRunRouter } from "./billingrun.routes";
 
 import "./transaction.changefeed";
+import { transactionRouter } from "./transaction.routes";
 
 export class Server {
 
@@ -96,6 +97,7 @@ export class Server {
     this.app.use("/fees", feesRouter);
     this.app.use("/students", studentRouter);
     this.app.use("/billingRun", billingRunRouter);
+    this.app.use("/transactions", transactionRouter);
 
     //this.registerController(StudentController);
     //this.registerController(StatementController);

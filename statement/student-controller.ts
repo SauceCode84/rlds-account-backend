@@ -111,13 +111,6 @@ const deleteStudentContact = async (req: StudentServiceRequest, res: Response, n
   res.sendStatus(204);
 }
 
-const getStudentTransactions = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
-  let { id } = req.params;
-  let txs = await req.service.studentTransactions(id);
-
-  res.json(txs);
-}
-
 export const studentRouter = Router();
 
 type StudentServiceRequest = ServiceRequest<StudentService>;
@@ -148,8 +141,7 @@ studentRouter
   .delete("/:id", deleteStudent)
   .get("/:id/contacts", getStudentContacts)
   .post("/:id/contacts", postStudentContact)
-  .delete("/:id/contacts/:contactId", deleteStudentContact)
-  .get("/:id/transactions", getStudentTransactions);
+  .delete("/:id/contacts/:contactId", deleteStudentContact);
   
 studentRouter.use(statusErrorHandler);
 

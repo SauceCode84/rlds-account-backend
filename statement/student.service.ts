@@ -132,16 +132,6 @@ export class StudentService implements OnResponseFinish {
       .run(this.connection);
   }
 
-  async studentTransactions(id: string): Promise<Transaction[]> {
-    let cursor = await r.table("transactions")
-      .filter({ accountId: id })
-      .without("accountId")
-      .orderBy("date")
-      .run(this.connection);
-
-    return await cursor.toArray<Transaction>();
-  }
-
   async finish(): Promise<void> {
     await this.connection.close();
   }
