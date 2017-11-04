@@ -1,43 +1,19 @@
 import { Router, Response } from "express";
 import * as r from "rethinkdb";
 
-import { RethinkRequest } from "./data-access";
+import { PaymentOption } from "./student.model";
+import { BillingRunStatus } from "./billingrun.model";
 
-import { Fee } from "./fee.model";
-import { Student, PaymentOption } from "./student.model";
-import { Billing, BillingRun, BillingRunStatus } from "./billingrun.model";
-import { Transaction } from "./transaction.models";
+import { ServiceRequest } from "./service-request";
+import { BillingRunService } from "./billingrun.service";
+import { serviceRequestProvider } from "./serviceRequestProvider";
 
-import { getFees } from "./fee.service";
+type BillingRunServiceRequest = ServiceRequest<BillingRunService>;
 
 export const billingRunRouter = Router();
 
-const getStudents = async (connection): Promise<Student[]> => {
-  let cursor = await r.table("students")
-    .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
-    .run(connection);
-  
-  return cursor.toArray();
-}
-
-const getBillingRun = (id: string, connection): Promise<BillingRun> => {
-  return r.table("billingRuns")
-    .get<BillingRun>(id)
-    .run(connection);
-}
-
-const createBillingForStudent = (student: Student, details: string, amount: number): Billing => {
-  return {
-    accountId: student.id,
-    grade: student.grade.id,
-    student: {
-      firstName: student.firstName,
-      lastName: student.lastName
-    },
-    details,
-    amount
-  };
-}
+billingRunRouter
+  .use(serviceRequestProvider(connection => new BillingRunService(connection)));
 
 type BillingRequest = {
   month: string;
@@ -45,88 +21,37 @@ type BillingRequest = {
   paymentOptions: PaymentOption[];
 };
 
-billingRunRouter.get("/:id", async (req: RethinkRequest, res: Response) => {
+billingRunRouter.get("/:id", async (req: BillingRunServiceRequest, res: Response) => {
   let { id } = req.params;
-  let billingRun = await getBillingRun(id, req.rdb);
+  let billingRun = await req.service.getBillingRun(id);
   
   res.json(billingRun);
 });
 
-billingRunRouter.post("/:id", async (req: RethinkRequest, res: Response) => {
+billingRunRouter.put("/:id", async (req: BillingRunServiceRequest, res: Response) => {
   let { id } = req.params as { id: string };
-  let { status } = req.body as { status: BillingRunStatus };
-  
-  let billingRun = await getBillingRun(id, req.rdb);
+  let exists = await req.service.billingRunExists(id);
 
-  if (!billingRun) {
+  if (!exists) {
     return res.sendStatus(404);
   }
 
+  let { status } = req.body as { status: BillingRunStatus };
+  
   if (status !== BillingRunStatus.Completed) {
-    return res.sendStatus(400);
+    return res.status(400).send("Invalid status");
   }
-
-  let txs = billingRun.billings.map(billing => {
-    let tx: Transaction = {
-      date: billingRun.date,
-      debit: billing.amount,
-      details: billing.details,
-      accountId: billing.accountId
-    };
-
-    return tx;
-  });
-
-  await r.table("transactions")
-    .insert(txs)
-    .run(req.rdb);
-
-  await r.table("billingRuns")
-    .get(id)
-    .update({ status: BillingRunStatus.Completed })
-    .run(req.rdb);
-
+  
+  await req.service.completeBillingRun(id);
+  
   res.sendStatus(200);
 });
 
-billingRunRouter.post("/", async (req: RethinkRequest, res: Response) => {
+billingRunRouter.post("/", async (req: BillingRunServiceRequest, res: Response) => {
   let { month, date, paymentOptions } = req.body as BillingRequest;
   paymentOptions = paymentOptions || [];
 
-  let fees = await getFees(req.rdb);
-  let students = await getStudents(req.rdb);
-  
-  let billings: Billing[] = [];
+  let id = await req.service.createBillingRun(month, date, paymentOptions);
 
-  students.forEach(student => {
-    if (paymentOptions.indexOf(student.paymentOption) === -1) {
-      return;
-    }
-
-    let { grade } = student;
-    let fee = fees.find(fee => fee.type === "class" && fee.id === grade.id);
-    let amount = 0;
-    let details = `Class Fees - ${fee.name} (${month})`;
-
-    if (fee && fee.amount[student.paymentOption]) {
-      amount = fee.amount[student.paymentOption];
-    }
-
-    let billing = createBillingForStudent(student, details, amount);
-    billings.push(billing);
-  });
-  
-  let billingRun: BillingRun = {
-    date: new Date(date),
-    status: BillingRunStatus.Pending,
-    billings
-  };
-
-  let result = await r.table("billingRuns")
-    .insert(billingRun)
-    .run(req.rdb);
-
-  console.log(result);
-
-  res.json(billingRun);
+  res.json({ id });
 });

@@ -157,12 +157,12 @@ onConnect(async (err, connection) => {
       return;
     }
 
-    console.log(change);
+    //console.log(change);
 
     //let changeSet = getNewValues(change, "firstName", "lastName");
-    let changeSet = getChangeDiff(change.new_val, change.old_val);
+    //let changeSet = getChangeDiff(change.new_val, change.old_val);
 
-    console.log("student changes...", changeSet);
+    //console.log("student changes...", changeSet);
   });
 });
 

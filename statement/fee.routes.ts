@@ -1,37 +1,48 @@
 import { NextFunction, Response, Router } from "express";
-import { RethinkRequest } from "./data-access";
+import { getConnection } from "./data-access";
 
-import { getFees, getFeesByType, getFee, isFeeType } from "./fee.service";
+import { FeeService } from "./fee.service";
+import { ServiceRequest } from "./service-request";
 
 export const feesRouter = Router();
 
+type FeeServiceRequest = ServiceRequest<FeeService>;
+
+feesRouter
+  .use(async (req: FeeServiceRequest, res: Response, next: NextFunction) => {
+    const connection = await getConnection();
+    req.service = new FeeService(connection);
+
+    next();
+  });
+
 // GET by fee type
-feesRouter.get("/", async (req: RethinkRequest, res: Response, next: NextFunction) => {
+feesRouter.get("/", async (req: FeeServiceRequest, res: Response, next: NextFunction) => {
   let { type } = req.query;
 
   if (!type) {
     return next();
   }
 
-  if (!isFeeType(type)) {
+  if (!FeeService.isFeeType(type)) {
     return res.status(400).send("Invalid fee type");
   }
   
-  let fees = await getFeesByType(type, req.rdb);
+  let fees = await req.service.getFeesByType(type);
   res.json(fees);
 });
 
 // GET all fees
-feesRouter.get("/", async (req: RethinkRequest, res: Response) => {
-  let fees = await getFees(req.rdb);
+feesRouter.get("/", async (req: FeeServiceRequest, res: Response) => {
+  let fees = await req.service.getFees();
 
   res.json(fees);
 });
 
 // GET fee by id
-feesRouter.get("/:id", async (req: RethinkRequest, res: Response) => {
+feesRouter.get("/:id", async (req: FeeServiceRequest, res: Response) => {
   let { id } = req.params;
-  let fee = await getFee(id, req.rdb);
+  let fee = await req.service.getFee(id);
 
   res.json(fee);
 });
