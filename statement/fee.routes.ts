@@ -1,20 +1,15 @@
 import { NextFunction, Response, Router } from "express";
-import { getConnection } from "./data-access";
 
 import { FeeService } from "./fee.service";
 import { ServiceRequest } from "./service-request";
+import { serviceRequestProvider } from "./serviceRequestProvider";
 
 export const feesRouter = Router();
 
 type FeeServiceRequest = ServiceRequest<FeeService>;
 
 feesRouter
-  .use(async (req: FeeServiceRequest, res: Response, next: NextFunction) => {
-    const connection = await getConnection();
-    req.service = new FeeService(connection);
-
-    next();
-  });
+  .use(serviceRequestProvider(connection => new FeeService(connection)));
 
 // GET by fee type
 feesRouter.get("/", async (req: FeeServiceRequest, res: Response, next: NextFunction) => {
@@ -46,3 +41,11 @@ feesRouter.get("/:id", async (req: FeeServiceRequest, res: Response) => {
 
   res.json(fee);
 });
+
+feesRouter.put("/:id", async (req: FeeServiceRequest, res: Response) => {
+  let { id } = req.params;
+  
+  await req.service.updateFee(id, req.body);
+
+  res.sendStatus(200);
+})

@@ -47,13 +47,12 @@ export class FeeService {
 
     return id;
   }
+
+  async updateFee(id: string, fee: Partial<Fee>) {
+    await r.table("fees")
+      .get(id)
+      .update(fee)
+      .run(this.connection);
+  }
   
 }
-
-
-
-
-
-
-
-
