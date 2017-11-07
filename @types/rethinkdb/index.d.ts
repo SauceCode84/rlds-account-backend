@@ -51,7 +51,7 @@ declare module "rethinkdb" {
     export const row: Row;
     export function expr(stuff: any): Expression<any>;
 
-    export function args(args: string[] | Expression<any>): string[];
+    export function args(args: string[] | Expression<any> | Sequence): string[];
     
     export function now(): Expression<Time>;
 
@@ -258,13 +258,15 @@ declare module "rethinkdb" {
         get<TObjectType extends object>(key: string): SingleRowSequence<TObjectType | null>;
         
         getAll(key: string | Expression<string>, index?: Index): Sequence; // without index defaults to primary key
-        getAll(keys: string[]): Sequence;
+        getAll(keys: string[], index?: Index): Sequence;
         getAll(...keys: string[]): Sequence;
         
         wait(WaitOptions?: WaitOptions): WaitResult;
     }
 
     interface SingleRowSequence<T extends object> extends Operation<T>, Writeable {
+      (prop: string): Sequence;
+
       changes(opts?: ChangesOptions): Sequence;
 
       merge<U extends object>(...objOrQuery: (U | ExpressionFunction<T>)[]): Expression<T & U>;
@@ -273,11 +275,14 @@ declare module "rethinkdb" {
     }
 
     interface Sequence extends Operation<Cursor>, Writeable {
+        (prop: string): Sequence;
+
         between(lower: any, upper: any, index?: Index): Sequence;
 
         filter(rql: ExpressionFunction<boolean>): Sequence;
         filter(rql: Expression<boolean>): Sequence;
         filter(obj: { [key: string]: any }): Sequence;
+        filter<T>(predicate: (doc: Expression<T>) => Expression<boolean>): Sequence;
 
         /**
          * Turn a query into a changefeed, an infinite stream of objects representing
@@ -333,6 +338,15 @@ declare module "rethinkdb" {
 
         // Control
         coerceTo<K extends keyof CoerceTypeMap>(type: K): CoerceTypeMap[K];
+
+        /**
+         * Provide a default value in case of non-existence errors. The `default` command evaluates its
+         * first argument (the value it’s chained to). If that argument returns `null` or a non-existence
+         * error is thrown in evaluation, then `default` returns its second argument. The second argument
+         * is usually a default value, but it can be a function that returns a value.
+         * @param value The default value or function
+         */
+        default<T>(value: T | ((err: Error) => Expression<T>)): Sequence;
     }
 
     interface Grouping<TGroup, TReduction> {
