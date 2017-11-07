@@ -19,9 +19,10 @@ import { feesRouter } from "./fee.routes";
 import { authRouter } from "./auth.route";
 import { userRouter } from "./user.route";
 import { billingRunRouter } from "./billingrun.routes";
+import { transactionRouter } from "./transaction.routes";
 
 import "./transaction.changefeed";
-import { transactionRouter } from "./transaction.routes";
+import "./transaction-verify.changefeed";
 
 export class Server {
 

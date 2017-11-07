@@ -10,6 +10,7 @@ export type TransactionType =
   "payment";
 
 export interface Transaction {
+  id?: string;
   date: Date;
   details: string;
   type?: TransactionType;

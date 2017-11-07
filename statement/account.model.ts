@@ -1,10 +1,20 @@
 
-import { Document } from "mongoose";
-
 // Accounting Equation
 // Assets = Liabilities + Equity + (Income - Expenses)
 // Equity = Assets - Liabilities - (Income - Expenses)
 // Equity = Assets - Liabilities - Income + Expenses
+
+/*
+
+             Debit       Credit
+            --------    --------
+Equity      Decrease    Increase
+Asset       Increase    Decrease
+Liability   Decrease	  Increase
+Income      Decrease    Increase
+Expense     Increase    Decrease
+
+*/
 
 export enum AccountType {
   Asset = "asset",
@@ -14,18 +24,14 @@ export enum AccountType {
   Expense = "expense"
 }
 
-export interface IAccountModel extends Document {
+export interface Account {
+  id: string;
   name: string;
   type: AccountType;
-  lines: IAccountLineModel[];
-  subAccounts?: IAccountModel[];
-}
-
-export interface IAccountLineModel {
-  date: Date;
-  description: string;
+  subAccounts?: Account[];
   debit?: number;
   credit?: number;
+  balance?: number;
 }
 
 /*let cashAccount: IAccountModel = {
