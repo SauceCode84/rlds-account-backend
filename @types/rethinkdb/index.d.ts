@@ -255,7 +255,7 @@ declare module "rethinkdb" {
         insert(obj: any[], options?: InsertOptions): Operation<WriteResult>;
         insert(obj: any, options?: InsertOptions): Operation<WriteResult>;
 
-        get<TObjectType extends object>(key: string): SingleRowSequence<TObjectType | null>;
+        get<TObjectType extends object>(key: string | Expression<string>): SingleRowSequence<TObjectType | null>;
         
         getAll(key: string | Expression<string>, index?: Index): Sequence; // without index defaults to primary key
         getAll(keys: string[], index?: Index): Sequence;
@@ -335,6 +335,9 @@ declare module "rethinkdb" {
         // Manipulation
         pluck(...props: string[]): Sequence;
         without(...props: string[]): Sequence;
+
+        merge(obj: Object): Sequence;
+        merge<T>(query: (doc: Expression<T>) => any): Sequence;
 
         // Control
         coerceTo<K extends keyof CoerceTypeMap>(type: K): CoerceTypeMap[K];

@@ -3,6 +3,11 @@ import * as r from "rethinkdb";
 import { Fee, FeeType, FeeTypes } from "./fee.model";
 import { getConnection } from "./data-access";
 
+interface GetFeeOptions {
+  includeAccountName?: boolean;
+  type?: FeeType;
+}
+
 export class FeeService {
 
   constructor(private connection: r.Connection) { }
@@ -15,7 +20,7 @@ export class FeeService {
     return false;
   }
 
-  async getFees({ includeAccountName = false, type }: { includeAccountName?: boolean, type?: FeeType } = {}): Promise<Fee[]> {
+  async getFees({ includeAccountName = false, type }: GetFeeOptions = {}): Promise<Fee[]> {
     let feeSeq: r.Sequence = r.table("fees");
 
     if (includeAccountName) {
