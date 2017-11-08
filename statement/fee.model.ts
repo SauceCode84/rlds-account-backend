@@ -1,9 +1,11 @@
 
 export interface Fee {
   [key: string]: any;
+  id?: string;
   name: string;
   amount: number | FeeAmount;
   type: FeeType;
+  accountId: string;
 }
 
 interface FeeAmount {

@@ -15,23 +15,29 @@ export class FeeService {
     return false;
   }
 
-  async getFees(): Promise<Fee[]> {
-    let cursor = await r.table("fees")
+  async getFees({ includeAccountName = false, type }: { includeAccountName?: boolean, type?: FeeType } = {}): Promise<Fee[]> {
+    let feeSeq: r.Sequence = r.table("fees");
+
+    if (includeAccountName) {
+      feeSeq = feeSeq.merge<Fee>(fee => {
+        return {
+          accountName: r.table("accounts")
+            .get<Account>(fee("accountId"))("name").default(null)
+        }
+      });
+    }
+
+    if (type) {
+      feeSeq = feeSeq.filter({ type });
+    }
+
+    let cursor = await feeSeq
       .orderBy("sortOrder")
       .run(this.connection);
 
-    return cursor.toArray();
+    return cursor.toArray<Fee>();
   }
 
-  async getFeesByType(type: FeeType): Promise<Fee[]> {
-    let cursor = await r.table("fees")
-      .filter({ type })
-      .orderBy("sortOrder")
-      .run(this.connection);
-
-    return await cursor.toArray();
-  }
-  
   async getFee(id: string): Promise<Fee> {
     return r.table("fees")
       .get<Fee>(id)

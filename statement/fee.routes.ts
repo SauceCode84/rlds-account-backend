@@ -3,6 +3,7 @@ import { NextFunction, Response, Router } from "express";
 import { FeeService } from "./fee.service";
 import { ServiceRequest } from "./service-request";
 import { serviceRequestProvider } from "./serviceRequestProvider";
+import { FeeType } from "./fee.model";
 
 export const feesRouter = Router();
 
@@ -11,25 +12,17 @@ type FeeServiceRequest = ServiceRequest<FeeService>;
 feesRouter
   .use(serviceRequestProvider(connection => new FeeService(connection)));
 
-// GET by fee type
-feesRouter.get("/", async (req: FeeServiceRequest, res: Response, next: NextFunction) => {
-  let { type } = req.query;
-
-  if (!type) {
-    return next();
-  }
-
-  if (!FeeService.isFeeType(type)) {
-    return res.status(400).send("Invalid fee type");
-  }
-  
-  let fees = await req.service.getFeesByType(type);
-  res.json(fees);
-});
+type FeeRequestQuery = { includeAccountName?: boolean, type?: FeeType };
 
 // GET all fees
 feesRouter.get("/", async (req: FeeServiceRequest, res: Response) => {
-  let fees = await req.service.getFees();
+  let { includeAccountName, type } = req.query as FeeRequestQuery;
+
+  if (type && !FeeService.isFeeType(type)) {
+    return res.status(400).send("Invalid fee type");
+  }
+
+  let fees = await req.service.getFees({ includeAccountName, type });
 
   res.json(fees);
 });
