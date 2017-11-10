@@ -334,6 +334,7 @@ declare module "rethinkdb" {
 
         // Manipulation
         pluck(...props: string[]): Sequence;
+        //pluck<K extends keyof T>(...props: K[]): Sequence<{ [P in K]: T[P] }>;
         without(...props: string[]): Sequence;
 
         merge(obj: Object): Sequence;
