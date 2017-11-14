@@ -6,12 +6,33 @@ export const isUpdate = <T>(change: r.Change<T>): boolean => change.old_val !== 
 export const isUpsert = <T>(change: r.Change<T>): boolean => isInsert(change) || isUpdate(change);
 export const isDelete = <T>(change: r.Change<T>): boolean => change.old_val && change.new_val === null;
 
+export type Insert = "insert";
+export type Update = "update";
+export type Upsert = Insert | Update;
+export type Delete = "delete";
+
+export type ChangeType = Insert | Update | Upsert | Delete;
+
+export const getChangeType = <T>(change: r.Change<T>): ChangeType => {
+  if (isInsert(change)) return "insert";
+  if (isUpdate(change)) return "update";
+  if (isDelete(change)) return "delete";
+}
+
 export const hasValueChanged = <T, K extends keyof T>(change: r.Change<T>, key: K) => {
   if (isUpdate(change)) {
     return change.old_val[key] === change.new_val[key];
   }
 
   return true;  
+}
+
+export const getValueFromChange = <T>(change: r.Change<T>) => {
+  if (isUpsert(change)) {
+    return change.new_val;
+  } else {
+    return change.old_val;
+  }
 }
 
 export type ChangeSet<T, K extends keyof T> = { [key: string]: T[K] };
