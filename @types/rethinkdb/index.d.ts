@@ -306,8 +306,9 @@ declare module "rethinkdb" {
 
         // Transform
         map(transform: ExpressionFunction<any>): Sequence;
+        map(transform: (doc: Expression<any>) => any): Sequence;
         withFields(...selectors: any[]): Sequence;
-        concatMap(transform: ExpressionFunction<any>): Sequence;
+        concatMap(transform: (doc: Expression<any>) => Expression<any> | Sequence): Sequence;
         orderBy(...keys: string[]): Sequence;
         orderBy(...sorts: Sort[]): Sequence;
         skip(n: number): Sequence;
@@ -432,7 +433,7 @@ declare module "rethinkdb" {
 
         merge(query: Object | Expression<Object>): Expression<Object>;
         append(prop: string): Expression<Object>;
-        contains(prop: string): Expression<boolean>;
+        contains(prop: string | Expression<any>): Expression<boolean>;
 
         and(b: boolean | Expression<boolean>): Expression<boolean>;
         or(b: boolean | Expression<boolean>): Expression<boolean>;
