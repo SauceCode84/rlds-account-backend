@@ -34,6 +34,11 @@ export interface Account {
   balance?: number;
 }
 
+export type AccountValues = {
+  debit?: number;
+  credit?: number;
+}
+
 /*let cashAccount: IAccountModel = {
   name: "Cash",
   type: AccountType.Asset,

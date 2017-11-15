@@ -132,6 +132,20 @@ export class StudentService implements OnResponseFinish {
       .run(this.connection);
   }
 
+  async isStudentAccount(accountId: string) {
+    return r.table("students")
+      .getAll(accountId)
+      .count().eq(1)
+      .run(this.connection);
+  }
+
+  async updateStudentAccount(accountId: string, { balance, lastPayment }: { balance: number, lastPayment: Date }) {
+    await r.table("students")
+      .get(accountId)
+      .update({ account: { balance, lastPayment } })
+      .run(this.connection);
+  }
+
   async finish(): Promise<void> {
     await this.connection.close();
   }

@@ -23,13 +23,13 @@ const serviceRequestHandler = async (req: TransactionServiceRequest, res: Respon
 }
 
 const getAccountTransactions = async (req: TransactionServiceRequest, res: Response, next: NextFunction) => {
-  let { accountId } = req.query;
+  let { accountId, includeSubAccounts } = req.query;
 
   if (!accountId) {
     return next();
   }
 
-  let txs = await req.service.getTransactionsByAccount(accountId);
+  let txs = await req.service.getTransactionsByAccount(accountId, includeSubAccounts);
 
   res.json(txs);
 }

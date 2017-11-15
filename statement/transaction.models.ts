@@ -17,4 +17,5 @@ export interface Transaction {
   debit?: number;
   credit?: number;
   accountId: string;
+  subAccountName?: string;
 }
