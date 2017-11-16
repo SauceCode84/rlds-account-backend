@@ -74,19 +74,31 @@ declare module "rethinkdb" {
 
     export class Cursor {
         hasNext(): boolean;
+
         each(cb: (err: Error, row: any) => void, done?: () => void): void;
         each<T>(cb: (err: Error, row: T) => void, done?: () => void): void;
         each(cb: (err: Error, row: any) => boolean, done?: () => void): void; // returning false stops iteration
         each<T>(cb: (err: Error, row: T) => boolean, done?: () => void): void; // returning false stops iteration
+        
+        eachAsync<T>(cb: (row: T) => Promise<any>): Promise<void>;
+        eachAsync<T>(cb: (row: T) => void, final: FinalCallback): void;
+        eachAsync<T>(cb: (row: T, done: DoneCallback) => void): Promise<void>;
+        eachAsync<T>(cb: (row: T, done: DoneCallback) => void, final: FinalCallback): void;
+        
         next(cb: (err: Error, row: any) => void): void;
         next<T>(cb: (err: Error, row: T) => void): void;
+        
         toArray(cb: (err: Error, rows: any[]) => void): void;
         toArray<T>(cb: (err: Error, rows: T[]) => void): void;
         toArray(): Promise<any[]>;
         toArray<T>(): Promise<T[]>;
+        
         close(cb: (err: Error) => void): void;
         close(): Promise<void>;
     }
+
+    type DoneCallback = (error?: any) => void;
+    type FinalCallback = (error?: any) => void;
 
     interface Row extends Expression<any> {
         (name: string): Expression<any>;
@@ -261,7 +273,13 @@ declare module "rethinkdb" {
         getAll(keys: string[], index?: Index): Sequence;
         getAll(...keys: string[]): Sequence;
         
+        sync(): Operation<SyncResult>;
+
         wait(WaitOptions?: WaitOptions): WaitResult;
+    }
+
+    interface SyncResult {
+      synced: number;
     }
 
     interface SingleRowSequence<T extends object> extends Operation<T>, Writeable {
