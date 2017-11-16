@@ -16,7 +16,7 @@ onConnect(async (err, connection) => {
     .changes()
     .run(connection);
   
-  accountChangeFeed.each(async (err, change: r.Change<Account>) => {
+  accountChangeFeed.eachAsync(async (change: r.Change<Account>) => {
     let { id } = getValueFromChange(change);
     let account = await service.getAccount(id);
   
@@ -24,7 +24,7 @@ onConnect(async (err, connection) => {
   
     console.log(`account change... new balance: ${balance}`);
   
-    service.updateBalance(id, balance);
+    await service.updateBalance(id, balance);
   });
 
   let parentAccountChangeFeed = await r.table("accounts")
@@ -42,7 +42,7 @@ onConnect(async (err, connection) => {
     .zip()
     .run(connection);
 
-    parentAccountChangeFeed.each(async (err, change: r.Change<Account> & ParentAccount) => {
+    parentAccountChangeFeed.eachAsync(async (change: r.Change<Account> & ParentAccount) => {
       let { parentAccountId } = change;
       let parentAccount = await service.getAccount(parentAccountId);
   
@@ -52,7 +52,7 @@ onConnect(async (err, connection) => {
         console.log(`Parent Account '${parentAccount.name}' changefeed...`);
         console.log(`Debit: ${debit}, Credit: ${credit}`);
   
-        service.updateAccountValues(parentAccountId, { debit, credit });
+        await service.updateAccountValues(parentAccountId, { debit, credit });
       }
     });
 });

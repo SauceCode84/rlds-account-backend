@@ -21,14 +21,47 @@ onConnect(async (err, connection) => {
     .changes()
     .run(connection);
 
-  txChangeFeed.each(async (err, change: r.Change<Transaction>) => {
+  txChangeFeed.eachAsync(async (change: r.Change<Transaction>) => {
+    let { accountId } = getValueFromChange(change);
+    let account = await accountService.getAccount(accountId);
+
+    if (account) {
+      let { debit, credit } = AccountService.calculateAccountValues(account, change);
+
+      await accountService.updateAccountValues(account.id, { debit, credit });
+    }
+  });
+
+  /*txChangeFeed.each(async (err, change: r.Change<Transaction>) => {
+    console.log("change... ", i++);
+    console.log(change);
+
     let { accountId } = getValueFromChange(change);
     let account = await accountService.getAccount(accountId);
 
     if (account) {
       let { debit, credit } = AccountService.calculateAccountValues(account, change);
       
-      accountService.updateAccountValues(account.id, { debit, credit });
+      await accountService.updateAccountValues(account.id, { debit, credit });
     }
-  });
+  });*/
 });
+
+
+/*cursor.eachAsync(
+  function (row, rowFinished) {
+      var ok = processRowData(row);
+      if (ok) {
+          rowFinished();
+      } else {
+          rowFinished('Bad row: ' + row);
+      }
+  },
+  function (error) {
+      if (error) {
+          console.log('Error:', error.message);
+      } else {
+          console.log('done processing');
+      }
+  }
+);*/
