@@ -1,5 +1,4 @@
 import * as r from "rethinkdb";
-import * as Decimal from "decimal.js";
 
 import { onConnect } from "./data-access";
 import { Account } from "./account.model";
@@ -12,11 +11,12 @@ onConnect(async (err, connection) => {
   
   let accountsCursor = await r.table("accounts").run(connection);
 
-  accountsCursor.each<Account>(async (err, account) => {
+  await accountsCursor.eachAsync(async (account: Account) => {
     let accountValues = await txService.calculateAccountValues(account.id, true);
 
     console.log(`${account.name} (${account.type})`, account.balance, accountValues);
 
     await accountService.updateAccountValues(account.id, accountValues);
   });
+
 });
