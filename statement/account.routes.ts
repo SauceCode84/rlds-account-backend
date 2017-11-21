@@ -32,6 +32,14 @@ accountsRouter.get("/:id", async (req: AccountServiceRequest, res: Response) => 
   let account = await req.service.getAccount(id);
 
   res.json(account);
+});
+
+accountsRouter.get("/:id/subAccounts", async (req: AccountServiceRequest, res: Response) => {
+  let { id } = req.params;
+
+  let subAccounts = await req.service.getSubAccounts(id);
+
+  res.json(subAccounts);
 })
 
 accountsRouter.post("/", async (req: AccountServiceRequest, res: Response) => {

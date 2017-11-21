@@ -90,6 +90,17 @@ export class AccountService {
       .run(this.connection);
   }
 
+  async getSubAccounts(id: string): Promise<Account[]> {
+    let subAccountsSeq = r.table("accounts").get(id)("subAccounts").default([]);
+
+    let subAccountsCursor = await r.table("accounts")
+      .getAll(r.args(subAccountsSeq))
+      .orderBy("name")
+      .run(this.connection);
+
+    return subAccountsCursor.toArray<Account>();
+  }
+
   private excludeSubAccounts(subAccount: r.Expression<Account>) {
     return r.table("accounts")
       .filter(account => account("subAccounts").default([]).contains(subAccount("id")))
@@ -140,4 +151,38 @@ const calculateAccountBalance = (type: AccountType, debit: number, credit: numbe
         return credit - debit;
     }
   }
+
+
+r.db("rlds")
+  .table("accounts")
+  .getAll(r.args(r.db("rlds")
+    .table("accounts")
+    .get("a8cdd7af-dc3f-4747-a7e2-ec59fdaa30d6")("subAccounts").default([])))
+  .orderBy("name")
+  
+
+r.db("rlds")
+  .table("transactions")
+  //.filter({ accountId: "059fd19f-8609-49ef-b313-0e326f47ee2c" })
+  //.delete()
+  
+  .insert(r.db("rlds")
+  .table("transactions")
+  .filter({ type: "private" })
+  .orderBy("date")
+  .map(function (tx) {
+    var student = r.db("rlds")
+      .table("students")
+      .get(tx("accountId"))
+      .pluck("firstName", "lastName");
+    return {
+      accountId: "059fd19f-8609-49ef-b313-0e326f47ee2c",
+      date: tx("date"),
+      credit: tx("debit"),
+      details: r.expr("Private Fees - ").add(student("firstName"), " ", student("lastName"))
+    };
+  }))
+
+
+
 */
