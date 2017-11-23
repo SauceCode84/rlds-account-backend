@@ -23,6 +23,7 @@ import { transactionRouter } from "./transaction.routes";
 import { accountsRouter } from "./account.routes";
 
 import "./account.changefeed";
+import "./student-tx.changefeed";
 import "./transaction.changefeed";
 import "./transaction-verify.changefeed";
 

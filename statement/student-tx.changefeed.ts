@@ -8,23 +8,25 @@ import { TransactionService, calculateBalance, lastPaymentDate } from "./transac
 
 onConnect(async (err, connection) => {
 
+  console.log("studentTxChangeFeed");
+
   const studentService = new StudentService(connection);
   const txService = new TransactionService(connection);
 
   let studentTxChangeFeed = await r.table("transactions")
-  .changes()
-  .filter((change: r.Expression<r.Change<Transaction>>) => {
-    let accountId = r.branch(change("new_val")("accountId").ne(null),
-      change("new_val")("accountId"),
-      change("old_val")("accountId"));
+    .changes()
+    .filter((change: r.Expression<r.Change<Transaction>>) => {
+      let accountId = r.branch(change("new_val").ne(null),
+        change("new_val")("accountId"),
+        change("old_val")("accountId"));
 
-    return r.table("students")
-      .getAll(accountId)
-      .count().eq(1);
-  })
-  .run(connection);
+      return r.table("students")
+        .getAll(accountId)
+        .count().gt(0);
+    })
+    .run(connection);
 
-  studentTxChangeFeed.each(async (err, change: r.Change<Transaction>) => {
+  studentTxChangeFeed.eachAsync(async (change: r.Change<Transaction>) => {
     let { accountId } = getValueFromChange(change);
     let transactions = await txService.getTransactionsByAccount(accountId);
     
