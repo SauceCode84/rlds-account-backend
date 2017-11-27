@@ -93,10 +93,7 @@ export class UserService implements OnResponseFinish {
    */
   async createUser(email: string, password: string): Promise<string> {
     let hashedPassword = await UserService.hashPassword(password);
-    let newUser = {
-      email,
-      password: hashedPassword
-    };
+    let newUser = { email, password: hashedPassword };
 
     let result = await r.table("users")
       .insert(newUser)
@@ -134,7 +131,6 @@ export class UserService implements OnResponseFinish {
 
   async finish(): Promise<void> {
     await this.connection.close();
-    console.log("UserService.finish()", "connection closed...");
   }
   
 }
