@@ -28,6 +28,7 @@ export interface Account {
   id: string;
   name: string;
   type: AccountType;
+  subType?: string;
   subAccounts?: Account[];
   debit?: number;
   credit?: number;
