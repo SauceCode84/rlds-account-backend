@@ -20,3 +20,19 @@ export interface Transaction {
   credit?: number;
   subAccountName?: string;
 }
+
+export type EntryType = "debit" | "credit";
+
+export interface DoubleEntryTransaction {
+  date: Date;
+  amount: number;
+  debit: {
+    accountId: string;
+    details: string;
+  };
+  credit: {
+    accountId: string;
+    details: string;
+  };
+}
+

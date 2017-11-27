@@ -65,9 +65,16 @@ const putTransaction = async (req: TransactionServiceRequest, res: Response, nex
   res.sendStatus(200);
 }
 
+const postDoubleEntryTransaction = async (req: TransactionServiceRequest, res: Response, next: NextFunction) => {
+  let result = await req.service.postDoubleEntry(req.body);
+
+  res.json(result);
+}
+
 transactionRouter
   .use(serviceRequestHandler)
   .get("/", getAccountTransactions, getAllTransactions)
   .get("/:id", getTransaction)
   .post("/", postTransaction)
-  .put("/:id", putTransaction);
+  .put("/:id", putTransaction)
+  .post("/post", postDoubleEntryTransaction);

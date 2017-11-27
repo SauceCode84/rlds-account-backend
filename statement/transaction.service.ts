@@ -1,10 +1,11 @@
 import * as r from "rethinkdb";
 import * as Decimal from "decimal.js";
+import * as moment from "moment";
 
 import { OnResponseFinish } from "./on-response-finish";
 
 import { AccountValues } from "./account.model";
-import { Transaction } from "./transaction.models";
+import { DoubleEntryTransaction, EntryType, Transaction } from "./transaction.models";
 
 import "../array.filterAsync";
 
@@ -87,7 +88,7 @@ export class TransactionService implements OnResponseFinish {
   }
 
   async insertTransaction(transaction: Transaction): Promise<string> {
-    transaction.date = new Date(transaction.date);
+    transaction.date = moment(transaction.date).utc(true).toDate();
     
     let result = await r.table("transactions")
       .insert(transaction)
@@ -96,6 +97,16 @@ export class TransactionService implements OnResponseFinish {
     let [ id ] = result.generated_keys;
 
     return id;
+  }
+
+  async insertTransactions(transactions: Transaction[]): Promise<string[]> {
+    transactions.forEach(tx => tx.date = moment(tx.date).utc(true).toDate());
+
+    let result = await r.table("transactions")
+      .insert(transactions)
+      .run(this.connection);
+
+    return result.generated_keys;
   }
 
   async updateTransaction(id: string, transaction: Partial<Transaction>): Promise<void> {
@@ -107,6 +118,49 @@ export class TransactionService implements OnResponseFinish {
       .get<Transaction>(id)
       .update(transaction)
       .run(this.connection);
+  }
+
+  async insertLedgerEntry({ date, amount }: { date: Date, amount: number }, debitId: string, creditId: string) {
+    date = moment(date).utc(true).toDate();
+
+    let result = await r.table("ledgerEntries")
+      .insert({ date, amount, debitId, creditId })
+      .run(this.connection);
+
+    let [ id ] = result.generated_keys;
+
+    return id;
+  }
+
+  async postDoubleEntry(doubleEntry: DoubleEntryTransaction) {
+    const transactionFromEntry = (doubleEntry: DoubleEntryTransaction) => {
+      let { date, amount } = doubleEntry;
+
+      return (entryType: EntryType): Transaction => {
+        let { accountId, details } = doubleEntry[entryType];
+        
+        let tx: Transaction = { accountId, details, date };
+        tx[entryType] = amount;
+
+        return tx;
+      }
+    }
+
+    const createTransactionsFromEntry = (doubleEntry: DoubleEntryTransaction) => {
+      let createTransaction = transactionFromEntry(doubleEntry);
+
+      return {
+        debit: createTransaction("debit"),
+        credit: createTransaction("credit")
+      };
+    }
+
+    let { debit, credit } = createTransactionsFromEntry(doubleEntry);
+    let [ debitId, creditId ] = await this.insertTransactions([ debit, credit ]);
+    
+    let id = await this.insertLedgerEntry(doubleEntry, debitId, creditId);
+
+    return { id, debitId, creditId };
   }
   
   async finish(): Promise<void> {
