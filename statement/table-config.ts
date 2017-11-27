@@ -46,6 +46,9 @@ export const tableConfigs: TableConfig[] = [
     seed: "../../seed-data/accounts.json"
   },
   {
+    name: "ledgerEntries",
+  },
+  {
     name: "transactions",
     indices:[
       {
