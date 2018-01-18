@@ -34,7 +34,7 @@ export const paginateResults = async <TModel>(queryFn: QueryFunction<TModel>, co
 
   let totalPages = Math.ceil(totalCount / pageSize);
 
-  if (page > totalPages) {
+  if (totalPages !== 0 && page > totalPages) {
     throw new StatusError(400, "Invalid page number");
   }
   

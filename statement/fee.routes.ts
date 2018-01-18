@@ -35,10 +35,18 @@ feesRouter.get("/:id", async (req: FeeServiceRequest, res: Response) => {
   res.json(fee);
 });
 
+// POST new fee
+feesRouter.post("/", async (req: FeeServiceRequest, res: Response) => {
+  let id = await req.service.insertFee(req.body);
+
+  res.status(201).json({ id });
+});
+
+// PUT fee by id
 feesRouter.put("/:id", async (req: FeeServiceRequest, res: Response) => {
   let { id } = req.params;
   
   await req.service.updateFee(id, req.body);
 
   res.sendStatus(200);
-})
+});

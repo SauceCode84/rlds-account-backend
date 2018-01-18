@@ -4,6 +4,8 @@ import { getConnection } from "./data-access";
 import { Student, Contact } from "./student.model";
 import { Transaction } from "./transaction.models";
 import { OnResponseFinish } from "./on-response-finish";
+import { AccountService } from "./account.service";
+import { AccountType } from "./account.model";
 
 export class StudentService implements OnResponseFinish {
   
@@ -67,7 +69,7 @@ export class StudentService implements OnResponseFinish {
     return contacts;
   }
 
-  async insertStudent(value: any): Promise<string> {
+  async insertStudent(student: Partial<Student>): Promise<string> {
     const defaultStudent = {
       account: {
         balance: 0,
@@ -75,16 +77,43 @@ export class StudentService implements OnResponseFinish {
       },
       contacts: []
     };
+
+    const createNewStudent = async () => {
+      let newStudent = Object.assign(student, defaultStudent) as Student;
+
+      let result = await r.table("students")
+        .insert(newStudent)
+        .run(this.connection);
   
-    let newStudent = Object.assign(value, defaultStudent);
+      let [ id ] = result.generated_keys;
+      newStudent.id = id;
+
+      return newStudent;
+    }
+
+    const createStudentAccount = async (student: Student) => {
+      let accountService = new AccountService(this.connection);
+      
+      await accountService.insertAccount({
+        id: student.id,
+        name: student.firstName + " " + student.lastName,
+        type: AccountType.Asset
+      });
+    };
+
+    const addStudentToAccountsReceiveable = async (studentId: string) => {
+      let accountService = new AccountService(this.connection);
+      const accountsReceiveableId = "8f39a3d8-077e-4d88-af16-ef640ce3a90c";
+  
+      await accountService.addSubAccount(accountsReceiveableId, studentId);
+    };
+
+    let newStudent = await createNewStudent();
     
-    let result = await r.table("students")
-      .insert(newStudent)
-      .run(this.connection);
+    await createStudentAccount(newStudent);
+    await addStudentToAccountsReceiveable(newStudent.id);
   
-    let [ id ] = result.generated_keys;
-  
-    return id;
+    return newStudent.id;
   }
 
   async updateStudent(id: string, value: any): Promise<void> {

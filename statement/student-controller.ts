@@ -29,12 +29,18 @@ const getPagedStudents = async (req: StudentServiceRequest, res: Response, next:
   }
 
   let { service } = req;
-  let result = await paginateResults(
-    () => service.pagedStudents(paginationSliceParams(pageOptions)),
-    () => service.studentCount(),
-    pageOptions);
   
-  res.json(result);
+  try {
+    let result = await paginateResults(
+      () => service.pagedStudents(paginationSliceParams(pageOptions)),
+      () => service.studentCount(),
+      pageOptions);
+    
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
 }
 
 const getStudents = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {

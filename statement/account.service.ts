@@ -107,11 +107,32 @@ export class AccountService {
       .count().eq(0);
   }
 
-  async insertAccount({ name, type }: { name: string, type: AccountType}) {
+  async insertAccount({ id, name, type }: { id?: string, name: string, type: AccountType}) {
     let newAccount = Object.assign({ name, type }, accountDefaults) as Account;
 
-    await r.table("accounts")
+    if (id) {
+      newAccount.id = id;
+    }
+
+    let result = await r.table("accounts")
       .insert(newAccount)
+      .run(this.connection);
+
+    let newId: string;
+    
+    if (result.generated_keys && result.generated_keys.length > 0) {
+      [ newId ] = result.generated_keys;
+    } else {
+      newId = id;
+    }
+
+    return newId;
+  }
+
+  async addSubAccount(accountId: string, subAccountId: string) {
+    let account = await r.table("accounts")
+      .get<Account>(accountId)
+      .update({ subAccounts: r.row("subAccounts").append(subAccountId) })
       .run(this.connection);
   }
 
