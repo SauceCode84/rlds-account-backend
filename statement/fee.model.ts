@@ -6,6 +6,7 @@ export interface Fee {
   amount: number | FeeAmount;
   type: FeeType;
   accountId: string;
+  paymentOption: FeePaymentOption;
 }
 
 interface FeeAmount {
@@ -23,6 +24,14 @@ export type FeeType =
   "preschool" |
   "private" |
   "registration";
+
+export enum FeePaymentOption {
+  None = "none",
+  Single = "single",
+  Monthly = "monthly",
+  Termly = "termly",
+  Annually = "annually"
+};
 
 export const FeeTypes: FeeType[] = [
   "class",
