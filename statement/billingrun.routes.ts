@@ -17,7 +17,7 @@ billingRunRouter
 
 type BillingRequest = {
   month: string;
-  date: string | Date;
+  date: Date;
   paymentOptions: PaymentOption[];
 };
 

@@ -33,7 +33,7 @@ export class BillingRunService {
     return count > 0;
   }
 
-  async createBillingRun(month: string, date: string | Date, paymentOptions: PaymentOption[]): Promise<string> {
+  async createBillingRun(month: string, date: Date, paymentOptions: PaymentOption[]): Promise<string> {
     let fees = await this.feeService.getFees();
     let students = await this.studentService.allStudents();
     

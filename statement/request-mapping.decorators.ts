@@ -2,6 +2,7 @@
 import { METHOD_METADATA, PATH_METADATA } from "./constants";
 
 interface RequestMappingMetadata {
+  [key: string]: string;
   path?: string;
   method?: string;
 }
