@@ -39,14 +39,12 @@ export class BillingRunService {
     
     let billings: Billing[] = [];
   
-    students.forEach(student => {
-      if (!this.isValidPaymentOption(student, paymentOptions)) {
-        return;
-      }
-  
-      let billing = this.createBillingForStudent(student, fees, month);
-      billings.push(billing);
-    });
+    students
+      .filter(this.isValidPaymentOption(paymentOptions))
+      .forEach(student => {
+        let billing = this.createBillingForStudent(student, fees, month);
+        billings.push(billing);
+      });
     
     let billingRun: BillingRun = {
       date: new Date(date),
@@ -114,8 +112,8 @@ export class BillingRunService {
     };
   }
 
-  private isValidPaymentOption(student: Student, paymentOptions: PaymentOption[]) {
-    return paymentOptions.indexOf(student.paymentOption) !== -1;
+  private isValidPaymentOption(paymentOptions: PaymentOption[]) {
+    return (student: Student) => paymentOptions.indexOf(student.paymentOption) !== -1;
   }
   
 }
