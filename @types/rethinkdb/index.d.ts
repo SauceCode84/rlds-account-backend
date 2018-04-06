@@ -49,7 +49,7 @@ declare module "rethinkdb" {
     export function avg(prop: string): Aggregator;
 
     export const row: Row;
-    export function expr(stuff: any): Expression<any>;
+    export function expr(value: any): Expression<any>;
 
     export function args(args: string[] | Expression<any> | Sequence): string[];
     
@@ -450,8 +450,9 @@ declare module "rethinkdb" {
 
     interface Expression<T> extends Writeable, Operation<T>, HasFields<Expression<number>> {
         (prop: string): Expression<any>;
+        (prop: Expression<string>): Expression<any>;
         <K extends keyof T>(prop: K): Expression<T[K]>;
-
+        
         merge(query: Object | Expression<Object>): Expression<Object>;
         append(prop: string): Expression<Object>;
         contains(prop: string | Expression<any>): Expression<boolean>;
