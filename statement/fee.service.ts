@@ -1,6 +1,6 @@
 import * as r from "rethinkdb";
 
-import { Fee, FeeType, FeeTypes } from "./fee.model";
+import { Fee, FeeType, FeeTypes, FeePaymentOption } from "./fee.model";
 import { getConnection } from "./data-access";
 import { Grade } from "./student.model";
 
@@ -49,8 +49,23 @@ export class FeeService {
       feeSeq = feeSeq.filter({ type });
     }
 
+    feeSeq = feeSeq.merge<Fee>(fee => {
+      const paymentOptionSorts = r.expr({
+        "single": 1,
+        "monthly": 2,
+        "termly": 3,
+        "annually": 4
+      });
+      
+      return {
+        gradeSort: r.table("grades").get(fee("grade"))("sortOrder").default(null),
+        paymentOptionSort: paymentOptionSorts(fee("paymentOption").default(null)).default(null)
+      };
+    });
+
     let cursor = await feeSeq
-      .orderBy("sortOrder")
+      .orderBy("sortOrder", "gradeSort", "paymentOptionSort")
+      .without("gradeSort", "paymentOptionSort")
       .run(this.connection);
 
     return cursor.toArray<Fee>();
