@@ -132,7 +132,7 @@ export class TransactionService implements OnResponseFinish {
     return id;
   }
 
-  async postDoubleEntry(doubleEntry: DoubleEntryTransaction) {
+  async postDoubleEntry(doubleEntry: DoubleEntryTransaction): Promise<PostDoubleEntryResponse> {
     const transactionFromEntry = (doubleEntry: DoubleEntryTransaction) => {
       let { date, amount } = doubleEntry;
 
@@ -168,3 +168,5 @@ export class TransactionService implements OnResponseFinish {
   }
 
 }
+
+type PostDoubleEntryResponse = { id: string, debitId: string, creditId: string };

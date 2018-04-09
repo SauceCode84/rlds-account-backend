@@ -13,15 +13,13 @@ accountsRouter
   .use(serviceRequestProvider(connection => new AccountService(connection)));
 
 accountsRouter.get("/", async (req: AccountServiceRequest, res: Response) => {
-  let { type } = req.query;
-  let accounts = await req.service.getAccounts({ type });
+  let accounts = await req.service.getAccounts(req.query);
 
   res.json(accounts);
 });
 
 accountsRouter.get("/names", async (req: AccountServiceRequest, res: Response) => {
-  let { type } = req.query;
-  let accountNames = await req.service.getAccountNames({ type });
+  let accountNames = await req.service.getAccountNames(req.query);
 
   res.json(accountNames);
 });

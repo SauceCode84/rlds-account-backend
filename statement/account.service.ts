@@ -54,11 +54,15 @@ export class AccountService {
     };
   }
 
-  async getAccounts({ type }: { type?: AccountType } = {}): Promise<Account[]> {
+  async getAccounts({ type, subType }: { type?: AccountType, subType?: string } = {}): Promise<Account[]> {
     let accountSeq: r.Sequence = await r.table("accounts");
     
     if (type) {
       accountSeq = accountSeq.filter({ type });
+
+      if (subType) {
+        accountSeq = accountSeq.filter({ subType });
+      }
     }
 
     let cursor = await accountSeq
@@ -68,11 +72,15 @@ export class AccountService {
     return cursor.toArray<Account>();
   }
 
-  async getAccountNames({ type }: { type?: AccountType } = {}): Promise<AccountName[]> {
+  async getAccountNames({ type, subType }: { type?: AccountType, subType?: string } = {}): Promise<AccountName[]> {
     let accountSeq: r.Sequence = await r.table("accounts");
 
     if (type) {
       accountSeq = accountSeq.filter({ type });
+
+      if (subType) {
+        accountSeq = accountSeq.filter({ subType });
+      }
     }
 
     let cursor = await accountSeq
