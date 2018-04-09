@@ -12,15 +12,16 @@ import { isNil, isFunction } from "./util";
 
 import { routerMethodFactory } from "./routerMethodFactory";
 
+import * as auth from "./auth";
 import { studentRouter } from "./student-controller";
 import { gradesRouter } from "./grades.route";
-import * as auth from "./auth";
 import { feesRouter } from "./fee.routes";
 import { authRouter } from "./auth.route";
 import { userRouter } from "./user.route";
 import { billingRunRouter } from "./billingrun.routes";
 import { transactionRouter } from "./transaction.routes";
 import { accountsRouter } from "./account.routes";
+import { configRouter } from "./config.routes";
 
 import "./account.changefeed";
 import "./student-tx.changefeed";
@@ -103,6 +104,7 @@ export class Server {
     this.app.use("/billingRun", billingRunRouter);
     this.app.use("/transactions", transactionRouter);
     this.app.use("/accounts", accountsRouter);
+    this.app.use("/config", configRouter);
 
     //this.registerController(StudentController);
     //this.registerController(StatementController);
