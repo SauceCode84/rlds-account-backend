@@ -15,6 +15,9 @@ export interface TableConfig {
 
 export const tableConfigs: TableConfig[] = [
   {
+    name: "config"
+  },
+  {
     name: "users",
     primaryKey: "id"
   },
