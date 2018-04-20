@@ -29,11 +29,13 @@ const getPagedStudents = async (req: StudentServiceRequest, res: Response, next:
   }
 
   let { service } = req;
-  
+  let { includeInactive } = req.query;
+  includeInactive = includeInactive === "true";
+    
   try {
     let result = await paginateResults(
-      () => service.pagedStudents(paginationSliceParams(pageOptions)),
-      () => service.studentCount(),
+      () => service.pagedStudents(paginationSliceParams(pageOptions), includeInactive),
+      () => service.studentCount(includeInactive),
       pageOptions);
     
     res.json(result);
@@ -44,13 +46,16 @@ const getPagedStudents = async (req: StudentServiceRequest, res: Response, next:
 }
 
 const getStudents = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
-  let students = await req.service.allStudents();
+  let { includeInactive } = req.query;
+  
+  let students = await req.service.allStudents(includeInactive === "true");
 
   res.json(students);
 }
 
 const getStudentNames = async (req: StudentServiceRequest, res: Response, next: NextFunction) => {
-  let students = await req.service.allStudents("id", "firstName", "lastName", "grade");
+  let { includeInactive } = req.query;
+  let students = await req.service.allStudents(includeInactive, "id", "firstName", "lastName", "grade");
   
   res.json(students);
 }

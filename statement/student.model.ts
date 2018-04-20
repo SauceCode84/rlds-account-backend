@@ -20,6 +20,7 @@ export interface Student {
   account: StudentAccount;
   paymentOption: PaymentOption;
   contacts: string[];
+  active: boolean;
 }
 
 export interface Contact {

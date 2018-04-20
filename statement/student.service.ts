@@ -7,22 +7,24 @@ import { OnResponseFinish } from "./on-response-finish";
 import { AccountService } from "./account.service";
 import { AccountType } from "./account.model";
 
+const inactiveFilter = (includeInactive: boolean) => r.branch(!includeInactive, { active: true }, {});
+
 export class StudentService implements OnResponseFinish {
   
   constructor(private connection: r.Connection) { }
 
-  studentCount(): Promise<number> {
+  studentCount(includeInactive: boolean = false): Promise<number> {
     return r.table("students")
+      .filter(inactiveFilter(includeInactive))
       .count()
       .run(this.connection);
   }
 
   async studentExists(id: string): Promise<boolean> {
-    let student = await r.table("students")
-      .get<Student>(id)
+    return await r.table("students")
+      .getAll(id)
+      .count().eq(1)
       .run(this.connection);
-  
-    return student !== undefined && student !== null;
   }
 
   findStudent(id: string) {
@@ -32,24 +34,28 @@ export class StudentService implements OnResponseFinish {
       .run(this.connection);
   }
 
-  async pagedStudents({ start, end }: { start: number, end: number }): Promise<Student[]> {
+  async pagedStudents({ start, end }: { start: number, end: number }, includeInactive: boolean = false): Promise<Student[]> {
     let cursor = await r.table("students")
       .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
+      .filter(inactiveFilter(includeInactive))
       .slice(start, end)
       .run(this.connection);
   
     return await cursor.toArray<Student>();
   }
 
-  async allStudents(...props: string[]): Promise<Student[]> {
-    let seq = await r.table("students")
-      .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" });
+  async allStudents(includeInactive: boolean = false, ...props: string[]): Promise<Student[]> {
+    console.log("includeInactive", includeInactive);
+
+    let students = await r.table("students")
+      .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
+      .filter(inactiveFilter(includeInactive));
   
     if (props && props.length > 0) {
-      seq = seq.pluck(...props);
+      students = students.pluck(...props);
     }
     
-    let cursor = await seq.run(this.connection);
+    let cursor = await students.run(this.connection);
   
     return cursor.toArray<Student>();
   }
