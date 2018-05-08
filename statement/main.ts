@@ -2,11 +2,14 @@ import * as express from "express";
 import * as http from "http";
 
 import { Server } from "./server";
+import { router } from "./router";
 
 let httpPort = normalizePort(process.env.PORT || 3000);
 
 let app = Server.bootstrap().app;
 app.set("port", httpPort);
+
+router.load(app, "./controllers");
 
 let httpServer = http.createServer(app);
 
