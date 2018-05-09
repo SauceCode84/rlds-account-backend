@@ -1,0 +1,38 @@
+
+version: "3.1"
+
+services:
+
+  rethinkdb:
+    container_name: rethinkdb
+    image: rlds-backend-rethinkdb
+    build:
+      context: .
+      dockerfile: .docker/rethinkdb.dockerfile
+    volumes:
+        - ./rethinkdb-data:/data
+    ports:
+      - "8080:8080"
+      - "28015:28015"
+      - "29015:29015"
+    networks:
+      - app-network
+  
+  node:
+    container_name: node
+    image: rlds-backend-node
+    build:
+      context: .
+      dockerfile: .docker/node.dockerfile
+    volumes:
+        - ./:/app
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    depends_on:
+      - rethinkdb
+
+networks:
+  app-network:
+    driver: bridge
