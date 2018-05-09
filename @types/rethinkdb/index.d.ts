@@ -173,7 +173,7 @@ declare module "rethinkdb" {
         tableDrop(name: string): Operation<DropResult>;
         tableList(): Operation<string[]>;
         table(name: string, options?: GetTableOptions): Table;
-        wait(waitOptions?: WaitOptions): WaitResult;
+        wait(waitOptions?: WaitOptions): Operation<WaitResult>;
     }
 
     interface TableOptions {
