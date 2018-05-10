@@ -6,21 +6,11 @@ import { getConnection } from "./data-access";
 import { ServiceRequest } from "./service-request";
 import { TransactionService } from "./transaction.service";
 import { responseFinishHandler } from "./response-finish-handler";
+import { serviceRequestProvider } from "./serviceRequestProvider";
 
 export const transactionRouter = Router();
 
 type TransactionServiceRequest = ServiceRequest<TransactionService>;
-
-const serviceRequestHandler = async (req: TransactionServiceRequest, res: Response, next: NextFunction) => {
-  const connection: r.Connection = await getConnection();
-  const service: TransactionService = new TransactionService(connection);
-  
-  req.service = service;
-
-  res.on("finish", responseFinishHandler(req));
-
-  next();
-}
 
 const getAccountTransactions = async (req: TransactionServiceRequest, res: Response, next: NextFunction) => {
   let { accountId, includeSubAccounts } = req.query;
@@ -72,7 +62,7 @@ const postDoubleEntryTransaction = async (req: TransactionServiceRequest, res: R
 }
 
 transactionRouter
-  .use(serviceRequestHandler)
+  .use(serviceRequestProvider(connection => new TransactionService(connection)))
   .get("/", getAccountTransactions, getAllTransactions)
   .get("/:id", getTransaction)
   .post("/", postTransaction)
