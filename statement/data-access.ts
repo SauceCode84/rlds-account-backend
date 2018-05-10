@@ -5,7 +5,7 @@ import * as fs from "fs";
 import { IndexConfig, tableConfigs } from "./table-config";
 
 const connectionConfig = {
-  host: "localhost",
+  host: "rethinkdb",
   port: 28015,
   db: "rlds"
 };
@@ -18,7 +18,17 @@ type OnConnectCallback = (err: Error, connection?: r.Connection) => void;
 
 export const onConnect = (callback: OnConnectCallback) => {
   r.connect(connectionConfig)
-   .then(connection => callback(null, connection))
+   .then(connection => {
+     r.db(connectionConfig.db)
+      .wait()
+      .run(connection, (err, result) => {
+        if (err) {
+          throw err;
+        }
+
+        callback(null, connection);
+      });    
+   })
    .catch(err => callback(err));
 }
 
@@ -103,7 +113,7 @@ onConnect(async (err, connection) => {
         await Promise.resolve(tableConfig.seed(connection));
       }
     }
-  });  
+  });
 });
 
 export const getConnection = (): Promise<r.Connection> => {
