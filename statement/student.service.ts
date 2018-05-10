@@ -45,8 +45,6 @@ export class StudentService implements OnResponseFinish {
   }
 
   async allStudents(includeInactive: boolean = false, ...props: string[]): Promise<Student[]> {
-    console.log("includeInactive", includeInactive);
-
     let students = await r.table("students")
       .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
       .filter(inactiveFilter(includeInactive));
