@@ -24,6 +24,12 @@ accountsRouter.get("/names", async (req: AccountServiceRequest, res: Response) =
   res.json(accountNames);
 });
 
+accountsRouter.get("/balances", async (req: AccountServiceRequest, res: Response) => {
+  let accountBalances = await req.service.getAccountBalances();
+
+  res.json(accountBalances);
+});
+
 accountsRouter.get("/:id", async (req: AccountServiceRequest, res: Response) => {
   let { id } = req.params;
 

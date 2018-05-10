@@ -11,6 +11,15 @@ interface AccountName {
   name: string;
 }
 
+interface AccountBalances {
+  id: string;
+  name: string;
+  type: AccountType;
+  balance: number;
+  debit?: number;
+  credit?: number;
+}
+
 const accountDefaults = {
   subAccounts: [],
   debit: 0,
@@ -90,6 +99,31 @@ export class AccountService {
       .run(this.connection);
 
     return cursor.toArray<AccountName>();
+  }
+
+  async getAccountBalances() {
+    let accountSeq = await r.table("accounts")
+      .filter(this.excludeSubAccounts)
+      .pluck("id", "name", "type", "balance")
+      .orderBy("type", "name")
+      .run(this.connection);
+
+    let accountBalances = await accountSeq.toArray<AccountBalances>();
+
+    return accountBalances
+      .map(accountBalance => {
+        const balance = accountBalance.balance;
+
+        if (balance !== 0) {
+          if (balance > 0 ) {
+            accountBalance.debit = balance;
+          } else {
+            accountBalance.credit = Math.abs(balance);
+          }
+        }
+
+        return accountBalance;
+      });
   }
 
   async getAccount(id: string): Promise<Account> {
