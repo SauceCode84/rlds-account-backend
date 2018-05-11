@@ -76,6 +76,7 @@ export class AccountService {
 
     let cursor = await accountSeq
       .filter(this.excludeSubAccounts)
+      .orderBy("type", "name")
       .run(this.connection);
 
     return cursor.toArray<Account>();
@@ -246,6 +247,26 @@ r.db("rlds")
     };
   }))
 
+*/
 
+/*
+
+// get transactions by account type, between two dates
+
+r.db("rlds")
+  .table("transactions")
+  .eqJoin("accountId", r.db("rlds").table("accounts"))
+  .filter(r.row("right")("type").eq("income"))
+  .map(doc => doc("left"))
+  .filter(r.row("date").during(r.time(2018, 3, 1, "Z"), r.time(2018, 3, 31, "Z"), { rightBound: "closed" }))
+
+
+r.db("rlds")
+  .table("transactions")
+  .filter({ accountId: "572db378-cf3d-4e3d-b802-471aa3a5f77a" })
+  .group(r.row("date").month())
+  .sum(function (doc) {
+    return doc("debit").default(0).sub(doc("credit").default(0))
+  })
 
 */
