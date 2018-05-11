@@ -36,8 +36,11 @@ export class StudentService implements OnResponseFinish {
 
   async pagedStudents({ start, end }: { start: number, end: number }, includeInactive: boolean = false): Promise<Student[]> {
     let cursor = await r.table("students")
-      .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
-      .filter(inactiveFilter(includeInactive))
+      .filter(inactiveFilter(includeInactive))  
+      .merge(student => {
+        return { grade: r.table("grades").get(student("grade")) };
+      })
+      .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), r.row("grade")("sortOrder"))
       .slice(start, end)
       .run(this.connection);
   
@@ -46,8 +49,11 @@ export class StudentService implements OnResponseFinish {
 
   async allStudents(includeInactive: boolean = false, ...props: string[]): Promise<Student[]> {
     let students = await r.table("students")
-      .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), { index: "gradeSort" })
-      .filter(inactiveFilter(includeInactive));
+      .filter(inactiveFilter(includeInactive))  
+      .merge(student => {
+        return { grade: r.table("grades").get(student("grade")) };
+      })
+      .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), r.row("grade")("sortOrder"));
   
     if (props && props.length > 0) {
       students = students.pluck(...props);
