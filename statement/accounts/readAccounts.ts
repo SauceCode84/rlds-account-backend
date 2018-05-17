@@ -1,6 +1,6 @@
 import * as r from "rethinkdb";
 
-import { AccountFilterOptions } from "./account-filter-options";
+import { AccountFilterOptions } from "./accountFilterOptions";
 import { excludeSubAccounts } from "./excludeSubAccounts";
 
 export const readAccounts = (connection: r.Connection) => async (options: AccountFilterOptions = {}): Promise<Account[]> => {
