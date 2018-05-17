@@ -1,12 +1,14 @@
 import * as r from "rethinkdb";
 
+import { AccountName } from "../account.model";
+
 import { AccountFilterOptions } from "./account-filter-options";
 import { excludeSubAccounts } from "./excludeSubAccounts";
 
-export const readAccounts = (connection: r.Connection) => async (options: AccountFilterOptions = {}): Promise<Account[]> => {
+export const readAccountNames = (connection: r.Connection) => async (options: AccountFilterOptions = {}): Promise<AccountName[]> => {
   let { type, subType } = options;
   let accountSeq: r.Sequence = await r.table("accounts");
-  
+
   if (type) {
     accountSeq = accountSeq.filter({ type });
 
@@ -14,11 +16,12 @@ export const readAccounts = (connection: r.Connection) => async (options: Accoun
       accountSeq = accountSeq.filter({ subType });
     }
   }
-
+  
   let cursor = await accountSeq
     .filter(excludeSubAccounts)
-    .orderBy("type", "name")
+    .pluck("id", "name")
+    .orderBy("name")
     .run(connection);
 
-  return cursor.toArray<Account>();
+  return cursor.toArray<AccountName>();
 }

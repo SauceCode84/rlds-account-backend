@@ -2,14 +2,9 @@ import * as r from "rethinkdb";
 import * as Decimal from "decimal.js";
 
 import { onConnect } from "./data-access";
-import { Account, AccountType, AccountValues } from "./account.model";
+import { Account, AccountType, AccountValues, AccountName } from "./account.model";
 import { isInsert, isUpdate, isDelete } from "./changefeed";
 import { TransactionService } from "./transaction.service";
-
-interface AccountName {
-  id: string;
-  name: string;
-}
 
 interface AccountBalances {
   id: string;

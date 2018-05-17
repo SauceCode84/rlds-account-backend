@@ -35,6 +35,11 @@ export interface Account {
   balance?: number;
 }
 
+export interface AccountName {
+  id: string;
+  name: string;
+}
+
 export type AccountValues = {
   debit?: number;
   credit?: number;

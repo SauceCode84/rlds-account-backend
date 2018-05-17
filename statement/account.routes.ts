@@ -6,21 +6,23 @@ import { serviceRequestProvider } from "./serviceRequestProvider";
 import { AccountService } from "./account.service";
 
 import { getConnection } from "./data-access";
-import { readAccounts } from "./accounts";
+import { readAccounts, readAccountNames } from "./accounts";
+
 
 export const accountsRouter = Router();
 
 type AccountServiceRequest = ServiceRequest<AccountService>;
 
 const getAccounts = async (req: Request, res: Response) => {
-  const connection = await getConnection();
-  const accounts = await readAccounts(connection)(req.query);
+  let connection = await getConnection();
+  let accounts = await readAccounts(connection)(req.query);
 
   res.json(accounts);
 };
 
 const getAccountNames = async (req: AccountServiceRequest, res: Response) => {
-  let accountNames = await req.service.getAccountNames(req.query);
+  let connection = await getConnection();
+  let accountNames = await readAccountNames(connection)(req.query);
 
   res.json(accountNames);
 };
