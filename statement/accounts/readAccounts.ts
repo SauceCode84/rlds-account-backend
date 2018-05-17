@@ -20,7 +20,7 @@ type AccountFilterOptions = {
   subType?: string;
 };
 
-const getAccounts = (connection: r.Connection) => async (options: AccountFilterOptions = {}): Promise<Account[]> => {
+export const readAccounts = (connection: r.Connection) => async (options: AccountFilterOptions = {}): Promise<Account[]> => {
   let { type, subType } = options;
   let accountSeq: r.Sequence = await r.table("accounts");
   

@@ -1,16 +1,20 @@
-import { Router, Response } from "express";
+import { Request, Response, Router } from "express";
 
 import { ServiceRequest } from "./service-request";
 import { serviceRequestProvider } from "./serviceRequestProvider";
 
 import { AccountService } from "./account.service";
 
+import { getConnection } from "./data-access";
+import { readAccounts } from "./accounts";
+
 export const accountsRouter = Router();
 
 type AccountServiceRequest = ServiceRequest<AccountService>;
 
-const getAccounts = async (req: AccountServiceRequest, res: Response) => {
-  let accounts = await req.service.getAccounts(req.query);
+const getAccounts = async (req: Request, res: Response) => {
+  const connection = await getConnection();
+  const accounts = await readAccounts(connection)(req.query);
 
   res.json(accounts);
 };
