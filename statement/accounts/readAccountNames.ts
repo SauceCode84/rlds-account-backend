@@ -4,8 +4,9 @@ import { AccountName } from "../account.model";
 
 import { AccountFilterOptions } from "./accountFilterOptions";
 import { excludeSubAccounts } from "./excludeSubAccounts";
+import { getConnection } from "../data-access";
 
-export const readAccountNames = (connection: r.Connection) => async (options: AccountFilterOptions = {}): Promise<AccountName[]> => {
+const makeReadAccountNames = (connection: r.Connection) => async (options: AccountFilterOptions = {}): Promise<AccountName[]> => {
   let { type, subType } = options;
   let accountSeq: r.Sequence = await r.table("accounts");
 
@@ -24,4 +25,15 @@ export const readAccountNames = (connection: r.Connection) => async (options: Ac
     .run(connection);
 
   return cursor.toArray<AccountName>();
+}
+
+export type ReadAccountNames = (options?: AccountFilterOptions) => Promise<AccountName[]>;
+
+export const readAccountNames = async (options?: AccountFilterOptions): Promise<AccountName[]> => {
+  let connection = await getConnection();
+  let accountNames = await makeReadAccountNames(connection)(options);
+
+  await connection.close();
+
+  return accountNames;
 }
