@@ -6,29 +6,29 @@ import { serviceRequestProvider } from "./serviceRequestProvider";
 import { AccountService } from "./account.service";
 
 import { getConnection } from "./data-access";
-import { readAccounts, readAccountNames } from "./accounts";
-
+import { readAccounts, ReadAccounts, readAccountNames, readAccountBalances } from "./accounts";
+import { AccountFilterOptions } from "./accounts/accountFilterOptions";
 
 export const accountsRouter = Router();
 
 type AccountServiceRequest = ServiceRequest<AccountService>;
 
-const getAccounts = async (req: Request, res: Response) => {
-  let connection = await getConnection();
-  let accounts = await readAccounts(connection)(req.query);
+const makeGetAccounts = (readAccounts: ReadAccounts) => async (req: Request, res: Response) => {
+  let accounts = await readAccounts(req.query);
 
   res.json(accounts);
-};
+}
+
+const getAccounts = makeGetAccounts(readAccounts);
 
 const getAccountNames = async (req: AccountServiceRequest, res: Response) => {
-  let connection = await getConnection();
-  let accountNames = await readAccountNames(connection)(req.query);
+  let accountNames = await readAccountNames(req["rethinkConnection"])(req.query);
 
   res.json(accountNames);
 };
 
 const getAccountBalances = async (req: AccountServiceRequest, res: Response) => {
-  let accountBalances = await req.service.getAccountBalances();
+  let accountBalances = await readAccountBalances(req["rethinkConnection"])();
 
   res.json(accountBalances);
 };
@@ -61,6 +61,18 @@ const putAccount = async (req: AccountServiceRequest, res: Response) => {
 
   res.sendStatus(200);
 };
+
+accountsRouter
+  .use(async (req, res, next) => {
+    let connection = await getConnection();
+    req["rethinkConnection"] = connection;
+
+    res.on("finish", async () => {
+      await connection.close();
+    });
+
+    next();
+  });
 
 accountsRouter
   .use(serviceRequestProvider(connection => new AccountService(connection)));

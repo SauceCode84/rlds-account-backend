@@ -2,18 +2,9 @@ import * as r from "rethinkdb";
 import * as Decimal from "decimal.js";
 
 import { onConnect } from "./data-access";
-import { Account, AccountType, AccountValues, AccountName } from "./account.model";
+import { Account, AccountType, AccountValues, AccountName, AccountBalances } from "./account.model";
 import { isInsert, isUpdate, isDelete } from "./changefeed";
 import { TransactionService } from "./transaction.service";
-
-interface AccountBalances {
-  id: string;
-  name: string;
-  type: AccountType;
-  balance: number;
-  debit?: number;
-  credit?: number;
-}
 
 const accountDefaults = {
   subAccounts: [],

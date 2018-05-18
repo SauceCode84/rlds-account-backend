@@ -2,8 +2,9 @@ import * as r from "rethinkdb";
 
 import { AccountFilterOptions } from "./accountFilterOptions";
 import { excludeSubAccounts } from "./excludeSubAccounts";
+import { getConnection } from "../data-access";
 
-export const readAccounts = (connection: r.Connection) => async (options: AccountFilterOptions = {}): Promise<Account[]> => {
+const makeReadAccounts = (connection: r.Connection) => async (options: AccountFilterOptions = {}): Promise<Account[]> => {
   let { type, subType } = options;
   let accountSeq: r.Sequence = await r.table("accounts");
   
@@ -21,4 +22,15 @@ export const readAccounts = (connection: r.Connection) => async (options: Accoun
     .run(connection);
 
   return cursor.toArray<Account>();
+}
+
+export type ReadAccounts = (options?: AccountFilterOptions) => Promise<Account[]>;
+
+export const readAccounts = async (options: AccountFilterOptions = {}): Promise<Account[]> => {
+  let connection = await getConnection();
+  let accounts = await makeReadAccounts(connection)(options);
+
+  await connection.close();
+
+  return accounts;
 }
