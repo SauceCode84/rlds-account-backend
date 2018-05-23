@@ -4,7 +4,7 @@ import { ServiceRequest } from "./service-request";
 import { serviceRequestProvider } from "./serviceRequestProvider";
 
 import { AccountService } from "./account.service";
-import { readAccounts, ReadAccounts, readAccountNames, ReadAccountNames, readAccountBalances, ReadAccountBalances } from "./accounts";
+import { readAccounts, ReadAccounts, readAccountNames, ReadAccountNames, readAccountBalances, ReadAccountBalances, readAccountById, ReadAccountById } from "./accounts";
 
 export const accountsRouter = Router();
 
@@ -16,28 +16,29 @@ const makeGetAccounts = (readAccounts: ReadAccounts) => async (req: Request, res
   res.json(accounts);
 }
 
-const makeGetAccountNames = (readAccountNames: ReadAccountNames) => async (req: AccountServiceRequest, res: Response) => {
+const makeGetAccountNames = (readAccountNames: ReadAccountNames) => async (req: Request, res: Response) => {
   let accountNames = await readAccountNames(req.query);
   
   res.json(accountNames);
 };
 
-const makeGetAccountBalances = (readAccountBalances: ReadAccountBalances) => async (req: AccountServiceRequest, res: Response) => {
+const makeGetAccountBalances = (readAccountBalances: ReadAccountBalances) => async (req: Request, res: Response) => {
   let accountBalances = await readAccountBalances();
 
   res.json(accountBalances);
 };
 
-const getAccounts = makeGetAccounts(readAccounts);
-const getAccountNames = makeGetAccountNames(readAccountNames);
-const getAccountBalances = makeGetAccountBalances(readAccountBalances);
-
-const getAccountById = async (req: AccountServiceRequest, res: Response) => {
+const makeGetAccountById = (readAccountById: ReadAccountById) => async (req: Request, res: Response) => {
   let { id } = req.params;
-  let account = await req.service.getAccount(id);
+  let account = await readAccountById(id);
 
   res.json(account);
 };
+
+const getAccounts = makeGetAccounts(readAccounts);
+const getAccountNames = makeGetAccountNames(readAccountNames);
+const getAccountBalances = makeGetAccountBalances(readAccountBalances);
+const getAccountById = makeGetAccountById(readAccountById);
 
 const getAccountSubAccounts = async (req: AccountServiceRequest, res: Response) => {
   let { id } = req.params;

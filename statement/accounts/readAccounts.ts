@@ -3,6 +3,7 @@ import * as r from "rethinkdb";
 import { AccountFilterOptions } from "./accountFilterOptions";
 import { excludeSubAccounts } from "./excludeSubAccounts";
 import { getConnection } from "../data-access";
+import { Account } from "../account.model";
 
 const makeReadAccounts = (connection: r.Connection) => async (options: AccountFilterOptions = {}): Promise<Account[]> => {
   let { type, subType } = options;
