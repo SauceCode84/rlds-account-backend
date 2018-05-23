@@ -4,7 +4,7 @@ import { ServiceRequest } from "./service-request";
 import { serviceRequestProvider } from "./serviceRequestProvider";
 
 import { AccountService } from "./account.service";
-import { readAccounts, ReadAccounts, readAccountNames, ReadAccountNames, readAccountBalances } from "./accounts";
+import { readAccounts, ReadAccounts, readAccountNames, ReadAccountNames, readAccountBalances, ReadAccountBalances } from "./accounts";
 
 export const accountsRouter = Router();
 
@@ -22,14 +22,15 @@ const makeGetAccountNames = (readAccountNames: ReadAccountNames) => async (req: 
   res.json(accountNames);
 };
 
-const getAccounts = makeGetAccounts(readAccounts);
-const getAccountNames = makeGetAccountNames(readAccountNames);
-
-const getAccountBalances = async (req: AccountServiceRequest, res: Response) => {
-  let accountBalances = await readAccountBalances(req["rethinkConnection"])();
+const makeGetAccountBalances = (readAccountBalances: ReadAccountBalances) => async (req: AccountServiceRequest, res: Response) => {
+  let accountBalances = await readAccountBalances();
 
   res.json(accountBalances);
 };
+
+const getAccounts = makeGetAccounts(readAccounts);
+const getAccountNames = makeGetAccountNames(readAccountNames);
+const getAccountBalances = makeGetAccountBalances(readAccountBalances);
 
 const getAccountById = async (req: AccountServiceRequest, res: Response) => {
   let { id } = req.params;
