@@ -13,6 +13,9 @@ export type ReadAccountById = (id: string) => Promise<Account>;
 
 export const readAccountById = async (id: string): Promise<Account> => {
   let connection = await getConnection();
+  let account = makeGetAccountById(connection)(id);
   
-  return makeGetAccountById(connection)(id);
+  await connection.close();
+
+  return account;
 }

@@ -34,6 +34,9 @@ export type ReadAccountBalances = () => Promise<AccountBalances[]>;
 
 export const readAccountBalances = async (): Promise<AccountBalances[]> => {
   let connection = await getConnection();
+  let accountBalances = makeReadAccountBalances(connection)();
+
+  await connection.close();
   
-  return makeReadAccountBalances(connection)();
+  return ;
 }
