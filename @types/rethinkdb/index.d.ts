@@ -364,6 +364,7 @@ declare module "rethinkdb" {
 
         // Control
         coerceTo<K extends keyof CoerceTypeMap>(type: K): CoerceTypeMap[K];
+        coerceTo<T>(type: "object"): Expression<T>;
 
         /**
          * Provide a default value in case of non-existence errors. The `default` command evaluates its
