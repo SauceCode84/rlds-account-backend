@@ -8,6 +8,7 @@ import { AccountService } from "./account.service";
 import { AccountType } from "./account.model";
 
 const inactiveFilter = (includeInactive: boolean) => r.branch(!includeInactive, { active: true }, {});
+const sortGradeStudentName = [r.row("grade")("sortOrder"), r.row("lastName").downcase(), r.row("firstName").downcase()];
 
 export class StudentService implements OnResponseFinish {
   
@@ -40,7 +41,7 @@ export class StudentService implements OnResponseFinish {
       .merge(student => {
         return { grade: r.table("grades").get(student("grade")) };
       })
-      .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), r.row("grade")("sortOrder"))
+      .orderBy(sortGradeStudentName)
       .slice(start, end)
       .run(this.connection);
   
@@ -53,7 +54,7 @@ export class StudentService implements OnResponseFinish {
       .merge(student => {
         return { grade: r.table("grades").get(student("grade")) };
       })
-      .orderBy(r.row("lastName").downcase(), r.row("firstName").downcase(), r.row("grade")("sortOrder"));
+      .orderBy(sortGradeStudentName);
   
     if (props && props.length > 0) {
       students = students.pluck(...props);
