@@ -99,9 +99,9 @@ declare module "rethinkdb" {
 
     type DoneCallback = (error?: any) => void;
     type FinalCallback = (error?: any) => void;
-
+    
     interface Row extends Expression<any> {
-        (name: string): Expression<any>;
+      (name: string): Expression<any>;
     }
 
     /**
@@ -450,8 +450,7 @@ declare module "rethinkdb" {
     }
 
     interface Expression<T> extends Writeable, Operation<T>, HasFields<Expression<number>> {
-        (prop: string): Expression<any>;
-        (prop: Expression<string>): Expression<any>;
+        (prop: string | Expression<string>): Expression<any>;
         <K extends keyof T>(prop: K): Expression<T[K]>;
         
         merge(query: Object | Expression<Object>): Expression<Object>;
