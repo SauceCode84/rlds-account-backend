@@ -2,6 +2,7 @@ import * as r from "rethinkdb";
 
 import { getConnection, onConnect } from "../data-access";
 import { Account } from "../account.model";
+import { executeQuery } from "../executeQuery";
 
 const subAccountsSequence = (id: string): r.Sequence => {
   return r.table("accounts")
@@ -20,11 +21,4 @@ const makeReadSubAccountsForAccount = (connection: r.Connection) => async (id: s
 
 export type ReadSubAccountsForAccount = (id: string) => Promise<Account[]>;
 
-export const readSubAccountsForAccount = async (id: string): Promise<Account[]> => {
-  let connection = await getConnection();
-  let subAccounts = await makeReadSubAccountsForAccount(connection)(id);
-
-  await connection.close();
-
-  return subAccounts;
-}
+export const readSubAccountsForAccount: ReadSubAccountsForAccount = executeQuery(makeReadSubAccountsForAccount);
