@@ -6,7 +6,7 @@ import {
   readAccountNames, ReadAccountNames,
   readAccountBalances, ReadAccountBalances,
   readAccountById, ReadAccountById,
-  readSubAccountsForAccount, ReadSubAccountsForAccount
+  readSubAccountsForAccount, ReadSubAccountsForAccount, CreateAccount, createAccount
 } from "./accounts";
 
 export const accountsRouter = Router();
@@ -50,17 +50,21 @@ const makeGetSubAccountsForAccount =
       res.json(subAccounts);
     };
 
+const makePostAccount =
+  (createAccount: CreateAccount) =>
+    async (req: Request, res: Response) => {
+      await createAccount(req.body);
+
+      res.sendStatus(200);
+    }
+
 const getAccounts = makeGetAccounts(readAccounts);
 const getAccountNames = makeGetAccountNames(readAccountNames);
 const getAccountBalances = makeGetAccountBalances(readAccountBalances);
 const getAccountById = makeGetAccountById(readAccountById);
 const getSubAccountsForAccount = makeGetSubAccountsForAccount(readSubAccountsForAccount);
 
-const postAccount = async (req: AccountServiceRequest, res: Response) => {
-  await req.service.insertAccount(req.body);
-
-  res.sendStatus(200);
-};
+const postAccount = makePostAccount(createAccount);
 
 const putAccount = async (req: AccountServiceRequest, res: Response) => {
   let { id } = req.params;

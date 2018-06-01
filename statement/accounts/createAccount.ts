@@ -2,6 +2,7 @@ import * as r from "rethinkdb";
 
 import { getConnection } from "../data-access";
 import { Account, AccountType } from "../account.model";
+import { executeQuery } from "../executeQuery";
 
 /*async insertAccount({ id, name, type }: { id?: string, name: string, type: AccountType}) {
   let newAccount = Object.assign({ name, type }, accountDefaults) as Account;
@@ -56,11 +57,6 @@ const makeCreateAccount = (connection: r.Connection) => async ({ id, name, type 
   return newId;
 }
 
-export const createAccount = async (newAccount: NewAccount) => {
-  let connection = await getConnection();
-  let newId = await makeCreateAccount(connection)(newAccount);
+export type CreateAccount = (newAccount: NewAccount) => Promise<string>;
 
-  await connection.close();
-
-  return newId;
-}
+export const createAccount: CreateAccount = executeQuery(makeCreateAccount);

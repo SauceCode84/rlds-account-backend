@@ -6,3 +6,5 @@ export { readAccountById, ReadAccountById } from "./readAccountById";
 export { readSubAccountsForAccount, ReadSubAccountsForAccount } from "./readSubAccountsForAccount";
 
 export { AccountFilterOptions } from "./accountFilterOptions";
+
+export { createAccount, CreateAccount } from "./createAccount"
