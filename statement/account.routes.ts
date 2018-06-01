@@ -1,24 +1,25 @@
-import { Request, Response, Router } from "express";
-
-import { ServiceRequest } from "./service-request";
-import { serviceRequestProvider } from "./serviceRequestProvider";
+import { Request, Response, Router, NextFunction } from "express";
 
 import { AccountService } from "./account.service";
 import {
   readAccounts, ReadAccounts,
   readAccountNames, ReadAccountNames,
   readAccountBalances, ReadAccountBalances,
-  readAccountById, ReadAccountById, readSubAccountsForAccount, ReadSubAccountsForAccount
+  readAccountById, ReadAccountById,
+  readSubAccountsForAccount, ReadSubAccountsForAccount
 } from "./accounts";
 
 export const accountsRouter = Router();
 
-type AccountServiceRequest = ServiceRequest<AccountService>;
+const makeGetAccounts = (readAccounts: ReadAccounts) => async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    let accounts = await readAccounts(req.query);
 
-const makeGetAccounts = (readAccounts: ReadAccounts) => async (req: Request, res: Response) => {
-  let accounts = await readAccounts(req.query);
-
-  res.json(accounts);
+    res.json(accounts);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
 }
 
 const makeGetAccountNames = (readAccountNames: ReadAccountNames) => async (req: Request, res: Response) => {
@@ -40,12 +41,14 @@ const makeGetAccountById = (readAccountById: ReadAccountById) => async (req: Req
   res.json(account);
 };
 
-const makeGetSubAccountsForAccount = (readSubAccountsForAccount: ReadSubAccountsForAccount) => async (req: AccountServiceRequest, res: Response) => {
-  let { id } = req.params;
-  let subAccounts = await readSubAccountsForAccount(id);
+const makeGetSubAccountsForAccount =
+  (readSubAccountsForAccount: ReadSubAccountsForAccount) =>
+    async (req: Request, res: Response) => {
+      let { id } = req.params;
+      let subAccounts = await readSubAccountsForAccount(id);
 
-  res.json(subAccounts);
-};
+      res.json(subAccounts);
+    };
 
 const getAccounts = makeGetAccounts(readAccounts);
 const getAccountNames = makeGetAccountNames(readAccountNames);
@@ -67,8 +70,8 @@ const putAccount = async (req: AccountServiceRequest, res: Response) => {
   res.sendStatus(200);
 };
 
-accountsRouter
-  .use(serviceRequestProvider(connection => new AccountService(connection)));
+/*accountsRouter
+  .use(serviceRequestProvider(connection => new AccountService(connection)));*/
 
 accountsRouter
   .get("/", getAccounts)
