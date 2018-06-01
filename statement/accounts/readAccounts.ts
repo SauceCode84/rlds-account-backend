@@ -4,11 +4,12 @@ import { AccountFilterOptions } from "./accountFilterOptions";
 import { excludeSubAccounts } from "./excludeSubAccounts";
 import { getConnection } from "../data-access";
 import { Account } from "../account.model";
+import { executeQuery } from "../executeQuery";
 
 const makeReadAccounts = (connection: r.Connection) => async (options: AccountFilterOptions = {}): Promise<Account[]> => {
   let { type, subType } = options;
-  let accountSeq: r.Sequence = await r.table("accounts");
-  
+  let accountSeq: r.Sequence = r.table("accounts");
+
   if (type) {
     accountSeq = accountSeq.filter({ type });
 
@@ -22,16 +23,9 @@ const makeReadAccounts = (connection: r.Connection) => async (options: AccountFi
     .orderBy("type", "name")
     .run(connection);
 
-  return cursor.toArray<Account>();
+  return await cursor.toArray<Account>();
 }
 
 export type ReadAccounts = (options?: AccountFilterOptions) => Promise<Account[]>;
 
-export const readAccounts = async (options: AccountFilterOptions = {}): Promise<Account[]> => {
-  let connection = await getConnection();
-  let accounts = await makeReadAccounts(connection)(options);
-
-  await connection.close();
-
-  return accounts;
-}
+export const readAccounts: ReadAccounts = executeQuery(makeReadAccounts);
