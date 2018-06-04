@@ -7,4 +7,6 @@ export { readSubAccountsForAccount, ReadSubAccountsForAccount } from "./readSubA
 
 export { AccountFilterOptions } from "./accountFilterOptions";
 
-export { createAccount, CreateAccount } from "./createAccount"
+export { createAccount, CreateAccount } from "./createAccount";
+
+export { updateAccount, UpdateAccount } from "./updateAccount";
