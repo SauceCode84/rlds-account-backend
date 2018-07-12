@@ -35,10 +35,10 @@ export const getValueFromChange = <T>(change: r.Change<T>) => {
   }
 }
 
-export type ChangeSet<T, K extends keyof T> = { [key: string]: T[K] };
+/*export type ChangeSet<T> = { [K in keyof T]: T[K] };
 
-export const getNewValues = <T, K extends keyof T>(change: r.Change<T>, ...keys: K[]): ChangeSet<T, K> => {
-  let changeSet: ChangeSet<T, K> = {};
+export const getNewValues = <T, K extends keyof T>(change: r.Change<T>, ...keys: K[]): ChangeSet<T> => {
+  let changeSet: ChangeSet<T> = {};
 
   keys = keys || (Object.keys(change) as K[]);
 
@@ -53,4 +53,4 @@ export const getNewValues = <T, K extends keyof T>(change: r.Change<T>, ...keys:
   });
 
   return changeSet;
-};
+};*/

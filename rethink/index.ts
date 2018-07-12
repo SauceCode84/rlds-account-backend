@@ -132,14 +132,14 @@ const start = async () => {
 
     let txChangeFeed = await r.table("transactions").changes().run(conn);
 
-    txChangeFeed.each(async (err, change: Change<Tx>) => {
+    /*txChangeFeed.each(async (err, change: Change<Tx>) => {
       let { accountId } = getNewValues(change, "accountId");
       let balance = await calculateBalance(accountId, conn);
 
       await updateAccountBalance(accountId, balance, conn);
 
       io.emit("balance", { balance });
-    });
+    });*/
     
   } catch (err) {
     console.error(err);
@@ -174,7 +174,7 @@ const hasValueChanged = <T, K extends keyof T>(change: Change<T>, key: K) => {
   return true;  
 }
 
-type ChangeSet<T, K extends keyof T> = { [key: string]: T[K] };
+/*type ChangeSet<T, K extends keyof T> = { [key: string]: T[K] };
 
 const getNewValues = <T, K extends keyof T>(change: Change<T>, ...keys: K[]): ChangeSet<T, K> => {
   let changeSet: ChangeSet<T, K> = {};
@@ -190,7 +190,7 @@ const getNewValues = <T, K extends keyof T>(change: Change<T>, ...keys: K[]): Ch
   });
 
   return changeSet;
-};
+};*/
 
 
 
