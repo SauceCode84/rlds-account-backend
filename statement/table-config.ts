@@ -1,5 +1,4 @@
 import * as r from "rethinkdb";
-import * as fs from "fs";
 
 export interface IndexConfig {
   name: string;

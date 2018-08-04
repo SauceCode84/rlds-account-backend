@@ -64,7 +64,7 @@ export class FeeService {
     });
 
     let cursor = await feeSeq
-      .orderBy("sortOrder", "gradeSort", "paymentOptionSort")
+      .orderBy("sortOrder", "gradeSort", "paymentOptionSort", "name")
       .without("gradeSort", "paymentOptionSort")
       .run(this.connection);
 

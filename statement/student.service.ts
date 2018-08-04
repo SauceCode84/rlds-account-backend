@@ -38,9 +38,9 @@ export class StudentService implements OnResponseFinish {
   async pagedStudents({ start, end }: { start: number, end: number }, includeInactive: boolean = false): Promise<Student[]> {
     let cursor = await r.table("students")
       .filter(inactiveFilter(includeInactive))  
-      .merge(student => {
+      /*.merge(student => {
         return { grade: r.table("grades").get(student("grade")) };
-      })
+      })*/
       .orderBy(sortGradeStudentName)
       .slice(start, end)
       .run(this.connection);
@@ -51,9 +51,9 @@ export class StudentService implements OnResponseFinish {
   async allStudents(includeInactive: boolean = false, ...props: string[]): Promise<Student[]> {
     let students = await r.table("students")
       .filter(inactiveFilter(includeInactive))  
-      .merge(student => {
+      /*.merge(student => {
         return { grade: r.table("grades").get(student("grade")) };
-      })
+      })*/
       .orderBy(sortGradeStudentName);
   
     if (props && props.length > 0) {
@@ -86,7 +86,8 @@ export class StudentService implements OnResponseFinish {
         balance: 0,
         lastPayment: null
       },
-      contacts: []
+      contacts: [],
+      active: true
     };
 
     const createNewStudent = async () => {
