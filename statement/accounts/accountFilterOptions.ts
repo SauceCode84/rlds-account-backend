@@ -5,6 +5,8 @@ import { AccountType } from "../account.model";
  */
 export type AccountFilterOptions = {
   
+  includeSubAccounts?: boolean;
+
   /**
    * The account type to filter
    */

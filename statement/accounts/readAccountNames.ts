@@ -7,8 +7,12 @@ import { excludeSubAccounts } from "./excludeSubAccounts";
 import { getConnection } from "../data-access";
 
 const makeReadAccountNames = (connection: r.Connection) => async (options: AccountFilterOptions = {}): Promise<AccountName[]> => {
-  let { type, subType } = options;
+  let { includeSubAccounts, type, subType } = options;
   let accountSeq: r.Sequence = await r.table("accounts");
+
+  if (!includeSubAccounts) {
+    accountSeq = accountSeq.filter(excludeSubAccounts);
+  }
 
   if (type) {
     accountSeq = accountSeq.filter({ type });
@@ -19,7 +23,6 @@ const makeReadAccountNames = (connection: r.Connection) => async (options: Accou
   }
   
   let cursor = await accountSeq
-    .filter(excludeSubAccounts)
     .pluck("id", "name")
     .orderBy("name")
     .run(connection);

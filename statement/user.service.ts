@@ -2,7 +2,6 @@ import * as r from "rethinkdb";
 import * as bcrypt from "bcrypt";
 
 import { User } from "./user.model";
-import { getConnection } from "./data-access";
 import { OnResponseFinish } from "./on-response-finish";
 
 export class UserService implements OnResponseFinish {
