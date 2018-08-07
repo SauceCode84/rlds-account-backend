@@ -31,7 +31,7 @@ onConnect(async (err, connection) => {
   const updateLedgerEntries = async (change: r.Change<Transaction>) => {
     console.log("updateLedgerEntries");
 
-    let { id, debit, credit } = getValueFromChange(change);
+    /*let { id, debit, credit } = getValueFromChange(change);
     //console.log("id", id);
     //console.log("debit", debit);
     //console.log("credit", credit);
@@ -69,7 +69,7 @@ onConnect(async (err, connection) => {
         
         txService.updateTransaction(otherId, otherTxValue);
       }
-    }
+    }*/
   }
 
   const txChangeFeed = await r.table("transactions")

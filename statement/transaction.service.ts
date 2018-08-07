@@ -5,9 +5,10 @@ import * as moment from "moment";
 import { OnResponseFinish } from "./on-response-finish";
 
 import { AccountValues } from "./account.model";
-import { DoubleEntryTransaction, EntryType, Transaction } from "./transaction.models";
+import { DoubleEntryTransaction, EntryType, Transaction, LedgerEntryDTO, TransactionDTO, LedgerEntry } from "./transaction.models";
 
 import "../array.filterAsync";
+import { isArray } from "util";
 
 export const calculateBalance = (balance: number, tx: Transaction): number => {
   return Decimal(balance)
@@ -120,11 +121,11 @@ export class TransactionService implements OnResponseFinish {
       .run(this.connection);
   }
 
-  async insertLedgerEntry({ date, amount }: { date: Date, amount: number }, debitId: string, creditId: string) {
+  async insertLedgerEntry(date: Date, debit: string[], credit: string[]) {
     date = moment(date).utc(true).toDate();
 
     let result = await r.table("ledgerEntries")
-      .insert({ date, amount, debitId, creditId })
+      .insert({ date, debit, credit })
       .run(this.connection);
 
     let [ id ] = result.generated_keys;
@@ -132,35 +133,50 @@ export class TransactionService implements OnResponseFinish {
     return id;
   }
 
-  async postDoubleEntry(doubleEntry: DoubleEntryTransaction): Promise<PostDoubleEntryResponse> {
-    const transactionFromEntry = (doubleEntry: DoubleEntryTransaction) => {
-      let { date, amount } = doubleEntry;
+  async postDoubleEntry(ledgerEntry: LedgerEntryDTO): Promise<PostDoubleEntryResponse> {
+    const transactionFromEntry = (ledgerEntry: LedgerEntryDTO) => {
+      let { date } = ledgerEntry;
+      const mapEntry = mapEntryToTransaction(date);
 
-      return (entryType: EntryType): Transaction => {
-        let { accountId, details } = doubleEntry[entryType];
-        
-        let tx: Transaction = { accountId, details, date };
-        tx[entryType] = amount;
+      return (entryType: EntryType) => {
+        let entries = ledgerEntry[entryType];
 
-        return tx;
+        if (!isArray(entries)) {
+          entries = [entries];
+        }
+
+        return entries.map(mapEntry(entryType));
       }
     }
 
-    const createTransactionsFromEntry = (doubleEntry: DoubleEntryTransaction) => {
-      let createTransaction = transactionFromEntry(doubleEntry);
+    const mapEntryToTransaction = (date: Date) => (entryType: EntryType) => (entry: TransactionDTO) => {
+      let { accountId, details, amount } = entry;
+      let tx: Transaction = { date, accountId, details };
+      
+      tx[entryType] = amount;
+
+      return tx;
+    }
+
+    const createTransactionsFromEntry = (ledgerEntry: LedgerEntryDTO) => {
+      let createTransactions = transactionFromEntry(ledgerEntry);
 
       return {
-        debit: createTransaction("debit"),
-        credit: createTransaction("credit")
+        debits: createTransactions("debit"),
+        credits: createTransactions("credit")
       };
     }
 
-    let { debit, credit } = createTransactionsFromEntry(doubleEntry);
-    let [ debitId, creditId ] = await this.insertTransactions([ debit, credit ]);
-    
-    let id = await this.insertLedgerEntry(doubleEntry, debitId, creditId);
+    let { date } = ledgerEntry;
 
-    return { id, debitId, creditId };
+    let { debits, credits } = createTransactionsFromEntry(ledgerEntry);
+    
+    let debitIds = await this.insertTransactions(debits);
+    let creditIds = await this.insertTransactions(credits);
+
+    let id = await this.insertLedgerEntry(date, debitIds, creditIds);
+
+    return { id, debitIds, creditIds };
   }
   
   async finish(): Promise<void> {
@@ -169,4 +185,4 @@ export class TransactionService implements OnResponseFinish {
 
 }
 
-type PostDoubleEntryResponse = { id: string, debitId: string, creditId: string };
+type PostDoubleEntryResponse = { id: string, debitIds: string[], creditIds: string[] };

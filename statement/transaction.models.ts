@@ -23,6 +23,13 @@ export interface Transaction {
 
 export type EntryType = "debit" | "credit";
 
+export interface LedgerEntry {
+  id?: string;
+  date: Date;
+  debit: string[];
+  credit: string[];
+}
+
 export interface DoubleEntryTransaction {
   date: Date;
   amount: number;
@@ -36,3 +43,14 @@ export interface DoubleEntryTransaction {
   };
 }
 
+export interface TransactionDTO {
+  accountId: string;
+  details: string;
+  amount: number;
+}
+
+export interface LedgerEntryDTO {
+  date: Date;
+  debit: TransactionDTO | TransactionDTO[];
+  credit: TransactionDTO | TransactionDTO[];
+}
