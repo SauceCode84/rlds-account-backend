@@ -3,6 +3,21 @@ version: "3.1"
 
 services:
 
+  nginx:
+    container_name: nginx
+    image: rlds-backend-nginx
+    build:
+      context: .
+      dockerfile: .docker/nginx.dockerfile
+    volumes:
+      - .docker/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+    depends_on:
+      - node
+
   rethinkdb:
     container_name: rethinkdb
     image: rlds-backend-rethinkdb
@@ -11,10 +26,10 @@ services:
       dockerfile: .docker/rethinkdb.dockerfile
     volumes:
         - ./rethinkdb-data:/data
-    ports:
-      - "8080:8080"
-      - "28015:28015"
-      - "29015:29015"
+    # ports:
+    #   - "8080:8080"
+    #   - "28015:28015"
+    #   - "29015:29015"
     networks:
       - app-network
   
@@ -26,8 +41,8 @@ services:
       dockerfile: .docker/node.dockerfile
     volumes:
         - ./:/app
-    ports:
-      - "3000:3000"
+    # ports:
+    #   - "3000:3000"
     networks:
       - app-network
     depends_on:

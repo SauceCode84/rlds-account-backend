@@ -1,5 +1,5 @@
 # base node image
-FROM node:9-alpine
+FROM node:10-alpine
 
 # install nodemon
 RUN npm install -g nodemon
