@@ -11,6 +11,7 @@ services:
       dockerfile: .docker/nginx.dockerfile
     volumes:
       - .docker/nginx.conf:/etc/nginx/nginx.conf
+      - ../rlds-account-ng/dist:/usr/share/nginx/html
     ports:
       - "80:80"
       - "443:443"
