@@ -5,10 +5,11 @@ import * as moment from "moment";
 import { OnResponseFinish } from "./on-response-finish";
 
 import { AccountValues } from "./account.model";
-import { DoubleEntryTransaction, EntryType, Transaction, LedgerEntryDTO, TransactionDTO, LedgerEntry } from "./transaction.models";
+import { EntryType, Transaction, LedgerEntryDTO, TransactionDTO } from "./transaction.models";
 
 import "../array.filterAsync";
 import { isArray } from "util";
+import { PageSliceOptions } from "./pagination";
 
 export const calculateBalance = (balance: number, tx: Transaction): number => {
   return Decimal(balance)
@@ -41,10 +42,10 @@ export class TransactionService implements OnResponseFinish {
     return await cursor.toArray<Transaction>();
   }
 
-  async getTransactionsByAccount(accountId: string, includeSubAccounts: boolean = false): Promise<Transaction[]> {
-    let txSeq = await r.table("transactions")
+  private transactionsByAccountSeq(accountId: string, includeSubAccounts: boolean = false) {
+    let txSeq = r.table("transactions")
       .filter({ accountId });
-
+    
     if (includeSubAccounts) {
       let subAccountTxSeq = r.table("transactions")
         .getAll(r.args(r.table("accounts")
@@ -65,12 +66,35 @@ export class TransactionService implements OnResponseFinish {
       txSeq = txSeq.union(subAccountTxSeq);
     }
 
-    let txCursor = await txSeq
+    return txSeq;
+  }
+
+  async getTransactionsByAccount(accountId: string, includeSubAccounts: boolean = false, pageOptions?: PageSliceOptions): Promise<Transaction[]> {
+    let txSeq = this.transactionsByAccountSeq(accountId, includeSubAccounts)
       .without("accountId")
-      .orderBy("date")
-      .run(this.connection);
+      .orderBy("date");
+    
+    if (!!pageOptions) {
+      let { start, end } = pageOptions;
+
+      txSeq = txSeq.slice(start, end);
+    }
+
+    let txCursor = await txSeq.run(this.connection);
 
     return await txCursor.toArray<Transaction>();
+  }
+
+  async transactionsCount(accountId: string, includeSubAccounts: boolean = false) {
+    return this.transactionsByAccountSeq(accountId, includeSubAccounts)
+      .count()
+      .run(this.connection);
+  }
+
+  async transactionsByAccountCount(accountId: string, includeSubAccounts: boolean = false) {
+    let txSeq = this.transactionsByAccountSeq(accountId, includeSubAccounts);
+    
+    return txSeq.count().run(this.connection);
   }
 
   async calculateAccountValues(accountId: string, includeSubAccounts: boolean = false): Promise<AccountValues> {

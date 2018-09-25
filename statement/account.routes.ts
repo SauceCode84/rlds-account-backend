@@ -42,32 +42,26 @@ const makeGetAccountById = (readAccountById: ReadAccountById) => async (req: Req
   res.json(account);
 };
 
-const makeGetSubAccountsForAccount =
-  (readSubAccountsForAccount: ReadSubAccountsForAccount) =>
-    async (req: Request, res: Response) => {
-      let { id } = req.params;
-      let subAccounts = await readSubAccountsForAccount(id);
+const makeGetSubAccountsForAccount = (readSubAccountsForAccount: ReadSubAccountsForAccount) => async (req: Request, res: Response) => {
+  let { id } = req.params;
+  let subAccounts = await readSubAccountsForAccount(id);
 
-      res.json(subAccounts);
-    };
+  res.json(subAccounts);
+};
 
-const makePostAccount =
-  (createAccount: CreateAccount) =>
-    async (req: Request, res: Response) => {
-      await createAccount(req.body);
+const makePostAccount = (createAccount: CreateAccount) => async (req: Request, res: Response) => {
+  await createAccount(req.body);
 
-      res.sendStatus(200);
-    }
+  res.sendStatus(200);
+}
 
-const makePutAccount = 
-  (updateAccount: UpdateAccount) =>
-    async (req: Request, res: Response) => {
-      let { id } = req.params;
+const makePutAccount = (updateAccount: UpdateAccount) => async (req: Request, res: Response) => {
+  let { id } = req.params;
 
-      await updateAccount(id, req.body);
+  await updateAccount(id, req.body);
 
-      res.sendStatus(200);
-    };
+  res.sendStatus(200);
+};
 
 const getAccounts = makeGetAccounts(readAccounts);
 const getAccountNames = makeGetAccountNames(readAccountNames);

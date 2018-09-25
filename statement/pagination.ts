@@ -35,7 +35,7 @@ export const paginateResults = async <TModel>(queryFn: QueryFunction<TModel>, co
   let totalPages = Math.ceil(totalCount / pageSize);
 
   if (totalPages !== 0 && page > totalPages) {
-    throw new StatusError(400, "Invalid page number");
+    throw new StatusError(300, "Invalid page number");
   }
   
   return {
@@ -46,14 +46,19 @@ export const paginateResults = async <TModel>(queryFn: QueryFunction<TModel>, co
   };  
 }
 
-export const paginationSliceParams = (options: PageOptions): { start: number, end: number } => {
+export interface PageSliceOptions {
+  start: number;
+  end: number;
+}
+
+export const paginationSliceParams = (options: PageOptions): PageSliceOptions => {
   let { page, pageSize } = options;
   
   page = parseInt(page) || 1;
   pageSize = parseInt(pageSize) || 10;
   
-  let start: number = ((page - 1) * pageSize);
-  let end: number = start + pageSize;
+  let start = (page - 1) * pageSize;
+  let end = start + pageSize;
 
   return { start, end };
 }

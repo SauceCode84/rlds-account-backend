@@ -5,7 +5,8 @@ import * as fs from "fs";
 import { IndexConfig, tableConfigs } from "./table-config";
 
 const connectionConfig = {
-  host: "localhost",
+  host: "rethinkdb",
+  //host: "localhost",
   port: 28015,
   db: "rlds"
 };

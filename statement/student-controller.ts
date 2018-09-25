@@ -4,13 +4,13 @@ import * as r from "rethinkdb";
 
 import "../array.last";
 
-import { onConnect, RethinkRequest, getConnection } from "./data-access";
+import { onConnect, getConnection } from "./data-access";
 import { StatusError } from "./status.error";
-import { PageOptions, PagedResults, paginateResults, validPageOptions, extractPagination, paginationSliceParams } from "./pagination";
+import { paginateResults, validPageOptions, extractPagination, paginationSliceParams } from "./pagination";
 import { Student } from "./student.model";
 
 import { StudentService } from "./student.service";
-import { ServiceRequest, isServiceRequest } from "./service-request";
+import { ServiceRequest } from "./service-request";
 import { responseFinishHandler } from "./response-finish-handler";
 
 const statusErrorHandler: ErrorRequestHandler = (err, req, res, next) => {

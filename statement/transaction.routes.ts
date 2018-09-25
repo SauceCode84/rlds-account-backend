@@ -1,16 +1,37 @@
 import { NextFunction, Response, Router } from "express";
 
-import * as r from "rethinkdb";
-import { getConnection } from "./data-access";
-
 import { ServiceRequest } from "./service-request";
 import { TransactionService } from "./transaction.service";
-import { responseFinishHandler } from "./response-finish-handler";
 import { serviceRequestProvider } from "./serviceRequestProvider";
+import { extractPagination, validPageOptions, paginateResults, paginationSliceParams } from "./pagination";
 
 export const transactionRouter = Router();
 
 type TransactionServiceRequest = ServiceRequest<TransactionService>;
+
+const getPagedAccountTransactions = async (req: TransactionServiceRequest, res: Response, next: NextFunction) => {
+  let pageOptions = extractPagination(req);
+
+  if (!validPageOptions(pageOptions)) {
+    return next();
+  }
+
+  let { service } = req;
+  let { accountId, includeSubAccounts } = req.query;
+
+  try {
+    let results = await paginateResults(
+      () => service.getTransactionsByAccount(accountId, includeSubAccounts, paginationSliceParams(pageOptions)),
+      () => service.transactionsCount(accountId, includeSubAccounts),
+      pageOptions
+    );
+
+    res.json(results);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+}
 
 const getAccountTransactions = async (req: TransactionServiceRequest, res: Response, next: NextFunction) => {
   let { accountId, includeSubAccounts } = req.query;
@@ -63,7 +84,7 @@ const postDoubleEntryTransaction = async (req: TransactionServiceRequest, res: R
 
 transactionRouter
   .use(serviceRequestProvider(connection => new TransactionService(connection)))
-  .get("/", getAccountTransactions, getAllTransactions)
+  .get("/", getPagedAccountTransactions, getAccountTransactions, getAllTransactions)
   .get("/:id", getTransaction)
   .post("/", postTransaction)
   .put("/:id", putTransaction)

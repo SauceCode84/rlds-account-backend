@@ -75,7 +75,7 @@ export class Server {
     });
 
     // error handler
-    this.app.use(errorHandler());
+    //this.app.use(errorHandler());
 
     // disable etag (caching)
     this.app.disable("etag");

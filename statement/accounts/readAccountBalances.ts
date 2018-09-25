@@ -2,9 +2,9 @@ import * as r from "rethinkdb";
 
 import { AccountBalances } from "../account.model";
 import { excludeSubAccounts } from "./excludeSubAccounts";
-import { getConnection } from "../data-access";
+import { executeQuery } from "../executeQuery";
 
-const withAccountBalanceValues = (accountBalance: AccountBalances) => {
+/*const withAccountBalanceValues = (accountBalance: AccountBalances) => {
   let { balance } = accountBalance;
 
   if (!!balance) {
@@ -16,27 +16,30 @@ const withAccountBalanceValues = (accountBalance: AccountBalances) => {
 
     return accountBalance;
   }
-}
+}*/
 
 const makeReadAccountBalances = (connection: r.Connection) => async (): Promise<AccountBalances[]> => {
   let accountSeq = await r.table("accounts")
       .filter(excludeSubAccounts)
-      .pluck("id", "name", "type", "balance")
+      .pluck("id", "name", "type", "balance", "debit", "credit")
       .orderBy("type", "name")
       .run(connection);
 
     let accountBalances = await accountSeq.toArray<AccountBalances>();
 
-    return accountBalances.map(withAccountBalanceValues);
+    return accountBalances; //.map(withAccountBalanceValues);
 }
 
 export type ReadAccountBalances = () => Promise<AccountBalances[]>;
 
-export const readAccountBalances = async (): Promise<AccountBalances[]> => {
+export const readAccountBalances: ReadAccountBalances = executeQuery(makeReadAccountBalances);
+
+
+/*async (): Promise<AccountBalances[]> => {
   let connection = await getConnection();
   let accountBalances = makeReadAccountBalances(connection)();
 
   await connection.close();
   
-  return ;
-}
+  return accountBalances;
+}*/
